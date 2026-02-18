@@ -1,326 +1,598 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Hypertrofia Tracker Pro</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body { font-family: Arial; padding: 20px; background: #f4f6f8; }
-.section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 12px; }
-button { padding: 6px 10px; margin: 3px; border-radius: 6px; border: none; cursor: pointer; }
-.progress-container { background: #ddd; border-radius: 10px; overflow: hidden; height: 15px; margin-top: 5px;}
-.progress-bar { height: 100%; width: 0%; transition: 0.3s;}
-.hidden { display: none; }
-input { margin: 3px; padding: 4px; }
-</style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f4f6f8">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="apple-touch-icon" href="icon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Hypertrofia Tracker Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon.png">
+  <style>
+    :root {
+      --bg: #eef2ff;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-700: #1d4ed8;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --border: #dbe3f0;
+      --shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, #dbeafe 0%, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .screen {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-height: calc(100dvh - 24px);
+    }
+
+    .screen.active { display: block; }
+
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 10px 0;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin: 0 0 12px 0;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 16px 0;
+      text-align: center;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .home-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f8fbff;
+      padding: 14px 10px;
+      min-height: 122px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .home-card .icon {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .home-card:active { transform: scale(0.98); }
+
+    .back-btn,
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.secondary {
+      background: #475569;
+      color: #fff;
+    }
+
+    .back-btn {
+      width: 100%;
+      margin-bottom: 12px;
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+
+    .grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 42px;
+      padding: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .progress-container {
+      height: 12px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.2s ease;
+    }
+
+    #semanaVisual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .dia {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 0.84rem;
+      text-align: center;
+      background: #f8fafc;
+    }
+
+    .category {
+      margin-bottom: 8px;
+    }
+
+    .muscle-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 8px;
+      background: #f8fafc;
+    }
+
+    .muscle-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .hidden { display: none; }
+
+    #graficaWrap {
+      width: 100%;
+      min-height: 280px;
+      max-height: 360px;
+    }
+
+    canvas { width: 100% !important; height: 100% !important; }
+  </style>
 </head>
 <body>
+  <main class="app">
+    <section id="homeScreen" class="screen active">
+      <h1>Hypertrofia Tracker</h1>
+      <p class="subtitle">Selecciona una sección</p>
+      <div class="home-grid">
+        <button class="home-card" onclick="showScreen('datosScreen')"><span class="icon">👤</span>Datos personales</button>
+        <button class="home-card" onclick="showScreen('aguaScreen')"><span class="icon">💧</span>Meta de agua</button>
+        <button class="home-card" onclick="showScreen('asistenciaScreen')"><span class="icon">🏋️</span>Asistencia</button>
+        <button class="home-card" onclick="showScreen('gruposScreen')"><span class="icon">💪</span>Grupos musculares</button>
+        <button class="home-card" onclick="showScreen('volumenScreen')"><span class="icon">📊</span>Volumen semanal</button>
+      </div>
+    </section>
 
-<h2>Hypertrofia Tracker</h2>
+    <section id="datosScreen" class="screen">
+      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
+      <h2>Datos Personales</h2>
+      <div class="grid">
+        <label>Nombre <input id="nombre" placeholder="Ej: Carlos"></label>
+        <label>Sexo <input id="sexo" placeholder="Ej: Masculino"></label>
+        <label>Edad <input id="edad" type="number" min="1"></label>
+        <label>Altura (cm) <input id="altura" type="number" min="1"></label>
+        <label>Peso (kg) <input id="peso" type="number" min="1" step="0.1" onchange="calcularAgua()"></label>
+        <label>Pecho (cm) <input id="pecho" type="number" min="0" step="0.1"></label>
+        <label>Brazo (cm) <input id="brazo" type="number" min="0" step="0.1"></label>
+        <label>Cintura (cm) <input id="cintura" type="number" min="0" step="0.1"></label>
+        <label>Pierna (cm) <input id="pierna" type="number" min="0" step="0.1"></label>
+      </div>
+    </section>
 
-<div class="section">
-<h3>Datos Personales</h3>
-<input id="nombre" placeholder="Nombre">
-<input id="sexo" placeholder="Sexo">
-<input id="edad" type="number" placeholder="Edad">
-<input id="altura" type="number" placeholder="Altura cm">
-<input id="peso" type="number" placeholder="Peso kg" onchange="calcularAgua()">
-<br>
-Circunferencias:
-<input placeholder="Pecho cm">
-<input placeholder="Brazo cm">
-<input placeholder="Cintura cm">
-<input placeholder="Pierna cm">
-</div>
+    <section id="aguaScreen" class="screen">
+      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
+      <h2>Meta de Agua</h2>
+      <p>Meta diaria: <strong><span id="metaAgua">0.00</span> L</strong></p>
+      <p>Consumido: <strong><span id="aguaActual">0.00</span> L</strong></p>
+      <div class="actions">
+        <button class="btn" onclick="agregarAgua(0.25)">💧 250 ml</button>
+        <button class="btn" onclick="agregarAgua(0.5)">💧💧 500 ml</button>
+        <button class="btn" onclick="agregarAgua(1)">💧💧💧 1000 ml</button>
+        <button class="btn secondary" onclick="resetAgua()">Reset diario</button>
+      </div>
+      <div class="progress-container"><div id="barraAgua" class="progress-bar"></div></div>
+    </section>
 
-<div class="section">
-<h3>Meta de Agua</h3>
-<p>Meta diaria: <span id="metaAgua">0</span> L</p>
-<h4>Sumar por gotas</h4>
-<button onclick="agregarAgua(0.25)" style="font-size:18px;">💧 250ml</button>
-<button onclick="agregarAgua(0.5)" style="font-size:22px;">💧💧 500ml</button>
-<button onclick="agregarAgua(1)" style="font-size:26px;">💧💧💧 1000ml</button>
-<button onclick="resetAgua()">Reset diario</button>
-<p>Consumido: <span id="aguaActual">0</span> L</p>
-<div class="progress-container">
-<div id="barraAgua" class="progress-bar"></div>
-</div>
-</div>
+    <section id="asistenciaScreen" class="screen">
+      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
+      <h2>Asistencia al gimnasio</h2>
+      <div class="actions">
+        <button class="btn" onclick="registrarGym(true)">Sí fui</button>
+        <button class="btn secondary" onclick="registrarGym(false)">Descanso</button>
+        <button class="btn secondary" onclick="resetSemanaGym()">Reset semanal</button>
+      </div>
+      <p id="gymEmoji" style="font-size:1.3rem; margin:8px 0;"></p>
+      <p>Días esta semana: <strong><span id="diasGym">0</span></strong></p>
+      <div id="semanaVisual"></div>
+    </section>
 
-<div class="section">
-<h3>¿Fui al gimnasio?</h3>
-<button onclick="registrarGym(true)">Sí fui</button>
-<button onclick="registrarGym(false)">Descanso</button>
-<button onclick="resetSemanaGym()">Reset semanal</button>
-<p id="gymEmoji"></p>
-<p>Días esta semana: <span id="diasGym">0</span></p>
-<h4>Semana actual</h4>
-<div id="semanaVisual"></div>
-</div>
+    <section id="gruposScreen" class="screen">
+      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
+      <h2>Series por Grupo Muscular</h2>
+      <div id="grupos"></div>
+    </section>
 
-<div class="section">
-<h3>Series por Grupo Muscular</h3>
-<div id="grupos"></div>
-</div>
+    <section id="volumenScreen" class="screen">
+      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
+      <h2>Volumen Semanal</h2>
+      <div class="actions"><button class="btn" onclick="calcularVolumen()">Calcular volumen</button></div>
+      <div id="graficaWrap"><canvas id="grafica"></canvas></div>
+    </section>
+  </main>
 
-<div class="section">
-<h3>Volumen Semanal</h3>
-<button onclick="calcularVolumen()">Calcular volumen</button>
-<canvas id="grafica"></canvas>
-</div>
+  <script>
+    const camposPersonales = ["nombre", "sexo", "edad", "altura", "peso", "pecho", "brazo", "cintura", "pierna"];
+    const diasOrden = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
-<script>
-let aguaActual = 0;
-let diasGym = 0;
-let semana = {
-"Lunes": null,
-"Martes": null,
-"Miércoles": null,
-"Jueves": null,
-"Viernes": null,
-"Sábado": null,
-"Domingo": null
-};
+    let aguaActual = 0;
+    let diasGym = 0;
+    let semana = {
+      "Lunes": null,
+      "Martes": null,
+      "Miércoles": null,
+      "Jueves": null,
+      "Viernes": null,
+      "Sábado": null,
+      "Domingo": null
+    };
 
-function guardarTodo(){
-localStorage.setItem("aguaActual", aguaActual);
-localStorage.setItem("semana", JSON.stringify(semana));
-localStorage.setItem("datosSeries", JSON.stringify(datosSeries));
-}
+    const estructura = {
+      "Upper Body": {
+        "Pecho": [10, 20], "Espalda": [12, 22], "Deltoide anterior": [6, 12], "Deltoide lateral": [8, 15],
+        "Deltoide posterior": [8, 15], "Bíceps": [8, 15], "Tríceps": [8, 15], "Antebrazo": [6, 12]
+      },
+      "Lower Body": {
+        "Cuádriceps": [10, 20], "Isquiotibiales": [8, 15], "Glúteos": [8, 15], "Pantorrillas": [10, 20], "Aductores": [6, 12]
+      },
+      "Core": {
+        "Recto abdominal": [6, 15], "Oblicuos": [6, 15], "Erectores espinales": [6, 12]
+      }
+    };
 
-function cargarTodo(){
+    let datosSeries = {};
+    let chart;
 
-let aguaGuardada = localStorage.getItem("aguaActual");
-let semanaGuardada = localStorage.getItem("semana");
-let seriesGuardadas = localStorage.getItem("datosSeries");
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
 
-if(aguaGuardada){
-aguaActual = parseFloat(aguaGuardada);
-document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
-actualizarBarraAgua();
-}
+    function guardarTodo() {
+      localStorage.setItem("aguaActual", String(aguaActual));
+      localStorage.setItem("semana", JSON.stringify(semana));
+      localStorage.setItem("datosSeries", JSON.stringify(datosSeries));
+      localStorage.setItem("metaAgua", document.getElementById("metaAgua").innerText);
 
-if(semanaGuardada){
-semana = JSON.parse(semanaGuardada);
-renderSemana();
-diasGym = Object.values(semana).filter(v => v === true).length;
-document.getElementById("diasGym").innerText = diasGym;
-}
+      const datosPersonales = {};
+      for (const id of camposPersonales) {
+        const el = document.getElementById(id);
+        datosPersonales[id] = el ? el.value : "";
+      }
+      localStorage.setItem("datosPersonales", JSON.stringify(datosPersonales));
+    }
 
-if(seriesGuardadas){
-datosSeries = JSON.parse(seriesGuardadas);
+    function cargarTodo() {
+      const aguaGuardada = localStorage.getItem("aguaActual");
+      const semanaGuardada = localStorage.getItem("semana");
+      const seriesGuardadas = localStorage.getItem("datosSeries");
+      const metaGuardada = localStorage.getItem("metaAgua");
+      const datosPersonales = localStorage.getItem("datosPersonales");
 
-for(let musculo in datosSeries){
-if(document.getElementById("valor-"+musculo)){
-document.getElementById("valor-"+musculo).innerText = datosSeries[musculo];
-let porcentaje = (datosSeries[musculo] /
-estructura[getCategoria(musculo)][musculo][1]) * 100;
+      if (aguaGuardada !== null) {
+        aguaActual = Number.parseFloat(aguaGuardada) || 0;
+        document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+      }
 
-let barra = document.getElementById("barra-"+musculo);
-barra.style.width = porcentaje+"%";
-}
-}
-}
-}
+      if (semanaGuardada) semana = JSON.parse(semanaGuardada);
+      if (seriesGuardadas) datosSeries = JSON.parse(seriesGuardadas);
 
-function getCategoria(musculo){
-for(let categoria in estructura){
-if(estructura[categoria][musculo]){
-return categoria;
-}
-}
-}
+      if (metaGuardada) {
+        document.getElementById("metaAgua").innerText = (Number.parseFloat(metaGuardada) || 0).toFixed(2);
+      }
 
-function renderSemana(){
-let contenedor = document.getElementById("semanaVisual");
-contenedor.innerHTML = "";
+      if (datosPersonales) {
+        const parsed = JSON.parse(datosPersonales);
+        for (const id of camposPersonales) {
+          if (document.getElementById(id) && parsed[id] !== undefined) {
+            document.getElementById(id).value = parsed[id];
+          }
+        }
+      }
 
-for(let dia in semana){
-let estado = semana[dia];
-let emoji = "";
-if(estado === true) emoji = "💪";
-if(estado === false) emoji = "😞";
+      diasGym = Object.values(semana).filter(v => v === true).length;
+      document.getElementById("diasGym").innerText = String(diasGym);
 
-contenedor.innerHTML += `<p>${dia}: ${emoji}</p>`;
-}
-}
+      renderSemana();
+      renderSeries();
+      actualizarBarraAgua();
+    }
 
-function calcularAgua() {
-let peso = document.getElementById("peso").value;
-let meta = (peso * 0.035).toFixed(2);
-document.getElementById("metaAgua").innerText = meta;
-}
+    function calcularAgua() {
+      const peso = Number.parseFloat(document.getElementById("peso").value);
+      const meta = peso > 0 ? peso * 0.035 : 0;
+      document.getElementById("metaAgua").innerText = meta.toFixed(2);
+      actualizarBarraAgua();
+      guardarTodo();
+    }
 
-function sumarAgua() {
-let cantidad = parseFloat(document.getElementById("aguaInput").value);
-if(!cantidad) return;
-aguaActual += cantidad;
-document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
-actualizarBarraAgua();
-}
+    function actualizarBarraAgua() {
+      const meta = Number.parseFloat(document.getElementById("metaAgua").innerText) || 0;
+      const barra = document.getElementById("barraAgua");
+      if (meta <= 0) {
+        barra.style.width = "0%";
+        barra.style.background = "var(--primary)";
+        return;
+      }
+      const porcentaje = Math.min((aguaActual / meta) * 100, 100);
+      barra.style.width = `${porcentaje}%`;
+      barra.style.background = porcentaje >= 100 ? "var(--success)" : "var(--primary)";
+    }
 
-function agregarAgua(cantidad){
-aguaActual += cantidad;
-document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
-actualizarBarraAgua();
-guardarTodo();
-}
+    function agregarAgua(cantidad) {
+      aguaActual += cantidad;
+      document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+      actualizarBarraAgua();
+      guardarTodo();
+    }
 
-function actualizarBarraAgua() {
-let meta = parseFloat(document.getElementById("metaAgua").innerText);
-let porcentaje = (aguaActual / meta) * 100;
-let barra = document.getElementById("barraAgua");
-barra.style.width = porcentaje + "%";
-barra.style.background = porcentaje >= 100 ? "green" : "blue";
-}
+    function resetAgua() {
+      aguaActual = 0;
+      document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+      actualizarBarraAgua();
+      guardarTodo();
+    }
 
-function resetAgua(){
-aguaActual = 0;
-document.getElementById("aguaActual").innerText = 0;
-actualizarBarraAgua();
-guardarTodo();
-}
+    function registrarGym(fui) {
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const nombreDia = diasMap[hoy.getDay()];
 
-function registrarGym(fui){
-let hoy = new Date();
-let dias = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-let nombreDia = dias[hoy.getDay()];
+      semana[nombreDia] = fui;
+      document.getElementById("gymEmoji").innerText = fui ? "💪" : "🛏️";
+      diasGym = Object.values(semana).filter(v => v === true).length;
+      document.getElementById("diasGym").innerText = String(diasGym);
+      renderSemana();
+      guardarTodo();
+    }
 
-semana[nombreDia] = fui;
+    function resetSemanaGym() {
+      for (const dia in semana) semana[dia] = null;
+      diasGym = 0;
+      document.getElementById("diasGym").innerText = "0";
+      document.getElementById("gymEmoji").innerText = "";
+      renderSemana();
+      guardarTodo();
+    }
 
-if(fui === true){
-document.getElementById("gymEmoji").innerText = "💪";
-}else{
-document.getElementById("gymEmoji").innerText = "🛏️";
-guardarTodo();
-}
+    function renderSemana() {
+      const contenedor = document.getElementById("semanaVisual");
+      contenedor.innerHTML = "";
+      for (const dia of diasOrden) {
+        const estado = semana[dia];
+        let emoji = "—";
+        if (estado === true) emoji = "💪";
+        if (estado === false) emoji = "😞";
+        const item = document.createElement("div");
+        item.className = "dia";
+        item.innerText = `${dia}: ${emoji}`;
+        contenedor.appendChild(item);
+      }
+    }
 
-diasGym = Object.values(semana).filter(v => v === true).length;
-document.getElementById("diasGym").innerText = diasGym;
+    function inicializarSeries() {
+      for (const categoria in estructura) {
+        for (const musculo in estructura[categoria]) {
+          if (typeof datosSeries[musculo] !== "number") datosSeries[musculo] = 0;
+        }
+      }
+    }
 
-renderSemana();
-}
+    function colorPorRango(valor, min, max) {
+      if (valor < min) return "var(--danger)";
+      if (valor < (min + max) / 2) return "var(--warning)";
+      return "var(--success)";
+    }
 
-window.onload = function(){
-cargarTodo();
-};
+    function renderSeries() {
+      inicializarSeries();
+      const contenedor = document.getElementById("grupos");
+      contenedor.innerHTML = "";
 
-function resetSemanaGym(){
-for(let dia in semana){
-semana[dia] = null;
-}
-diasGym = 0;
-document.getElementById("diasGym").innerText = 0;
-document.getElementById("gymEmoji").innerText = "";
-renderSemana();
-guardarTodo();
-}
+      for (const categoria in estructura) {
+        const wrap = document.createElement("div");
+        wrap.className = "category";
 
-let estructura = {
-"Upper Body": {
-"Pecho":[10,20],
-"Espalda":[12,22],
-"Deltoide anterior":[6,12],
-"Deltoide lateral":[8,15],
-"Deltoide posterior":[8,15],
-"Bíceps":[8,15],
-"Tríceps":[8,15],
-"Antebrazo":[6,12]
-},
-"Lower Body":{
-"Cuádriceps":[10,20],
-"Isquiotibiales":[8,15],
-"Glúteos":[8,15],
-"Pantorrillas":[10,20],
-"Aductores":[6,12]
-},
-"Core":{
-"Recto abdominal":[6,15],
-"Oblicuos":[6,15],
-"Erectores espinales":[6,12]
-}
-};
+        const toggle = document.createElement("button");
+        toggle.className = "btn";
+        toggle.style.width = "100%";
+        toggle.innerText = categoria;
 
-let contenedor = document.getElementById("grupos");
-let datosSeries = {};
+        const body = document.createElement("div");
+        body.classList.add("hidden");
 
-for(let categoria in estructura){
-let boton = document.createElement("button");
-boton.innerText = categoria;
-let divCategoria = document.createElement("div");
-divCategoria.classList.add("hidden");
+        toggle.onclick = () => body.classList.toggle("hidden");
 
-boton.onclick = function(){
-divCategoria.classList.toggle("hidden");
-};
+        for (const musculo in estructura[categoria]) {
+          const [min, max] = estructura[categoria][musculo];
+          const actual = datosSeries[musculo] || 0;
+          const progreso = Math.min((actual / max) * 100, 100);
 
-contenedor.appendChild(boton);
-contenedor.appendChild(divCategoria);
+          const card = document.createElement("div");
+          card.className = "muscle-card";
+          card.innerHTML = `
+            <div class="muscle-title">
+              <strong>${musculo}</strong>
+              <span id="valor-${musculo}">${actual}</span>
+            </div>
+            <div class="muted">Meta sugerida: ${min}-${max} series</div>
+            <div class="actions">
+              <button class="btn" onclick="sumarSerie('${musculo}', ${min}, ${max})">+1 serie</button>
+              <button class="btn secondary" onclick="restarSerie('${musculo}', ${min}, ${max})">-1 serie</button>
+            </div>
+            <div class="progress-container">
+              <div id="barra-${musculo}" class="progress-bar" style="width:${progreso}%; background:${colorPorRango(actual, min, max)}"></div>
+            </div>
+          `;
 
-for(let musculo in estructura[categoria]){
-let min = estructura[categoria][musculo][0];
-let max = estructura[categoria][musculo][1];
-datosSeries[musculo]=0;
+          body.appendChild(card);
+        }
 
-let div = document.createElement("div");
-div.innerHTML = `<b>${musculo}</b> (${min}-${max} series)
-<button onclick="sumarSerie('${musculo}',${min},${max})">+1</button>
-<span id="valor-${musculo}">0</span>
-<div class="progress-container">
-<div id="barra-${musculo}" class="progress-bar"></div>
-</div>`;
-divCategoria.appendChild(div);
-}
-}
+        wrap.appendChild(toggle);
+        wrap.appendChild(body);
+        contenedor.appendChild(wrap);
+      }
+    }
 
-function sumarSerie(musculo,min,max){
-datosSeries[musculo]++;
-document.getElementById("valor-"+musculo).innerText = datosSeries[musculo];
-let porcentaje = (datosSeries[musculo]/max)*100;
-let barra = document.getElementById("barra-"+musculo);
-barra.style.width = porcentaje+"%";
+    function actualizarSerieUI(musculo, min, max) {
+      const valor = datosSeries[musculo] || 0;
+      const progress = Math.min((valor / max) * 100, 100);
+      const label = document.getElementById(`valor-${musculo}`);
+      const bar = document.getElementById(`barra-${musculo}`);
+      if (label) label.innerText = String(valor);
+      if (bar) {
+        bar.style.width = `${progress}%`;
+        bar.style.background = colorPorRango(valor, min, max);
+      }
+    }
 
-if(datosSeries[musculo] < min){
-barra.style.background = "red";
-}else if(datosSeries[musculo] < (min+max)/2){
-barra.style.background = "orange";
-}else{
-barra.style.background = "green";
-guardarTodo();
-}
-}
+    function sumarSerie(musculo, min, max) {
+      datosSeries[musculo] = (datosSeries[musculo] || 0) + 1;
+      actualizarSerieUI(musculo, min, max);
+      guardarTodo();
+    }
 
-let chart;
+    function restarSerie(musculo, min, max) {
+      datosSeries[musculo] = Math.max((datosSeries[musculo] || 0) - 1, 0);
+      actualizarSerieUI(musculo, min, max);
+      guardarTodo();
+    }
 
-function calcularVolumen(){
-let labels = [];
-let data = [];
-for(let musculo in datosSeries){
-labels.push(musculo);
-data.push(datosSeries[musculo]);
-}
+    function calcularVolumen() {
+      const labels = [];
+      const data = [];
 
-if(chart) chart.destroy();
+      for (const musculo in datosSeries) {
+        labels.push(musculo);
+        data.push(datosSeries[musculo]);
+      }
 
-chart = new Chart(document.getElementById("grafica"),{
-type:"bar",
-data:{
-labels:labels,
-datasets:[{
-label:"Series Totales",
-data:data
-}]
-}
-});
-}
-renderSemana();
+      if (chart) chart.destroy();
 
-</script>
+      chart = new Chart(document.getElementById("grafica"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Series Totales",
+            data,
+            backgroundColor: "rgba(37,99,235,0.7)",
+            borderColor: "rgba(37,99,235,1)",
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
 
+    document.addEventListener("input", (e) => {
+      if (camposPersonales.includes(e.target.id)) guardarTodo();
+    });
+
+    window.onload = () => {
+      renderSeries();
+      cargarTodo();
+      showScreen('homeScreen');
+    };
+  </script>
 </body>
 </html>
