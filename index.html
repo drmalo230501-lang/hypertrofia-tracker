@@ -53,7 +53,39 @@
       min-height: calc(100dvh - 24px);
     }
 
-    .screen.active { display: block; }
+    .screen.active {
+      display: block;
+      animation: screenIn 0.24s ease;
+    }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --card: #111827;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --border: #253047;
+        --shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      }
+
+      body {
+        background: radial-gradient(circle at top, #0f172a 0%, var(--bg) 45%);
+      }
+
+      .home-card,
+      .muscle-card,
+      .asistencia-anim,
+      .history-list,
+      .dia { background: #0f172a; }
+
+      .mini-progress,
+      .progress-container { background: #1e293b; }
+    }
 
     h1 {
       font-size: 1.25rem;
@@ -104,6 +136,117 @@
     }
 
     .home-card:active { transform: scale(0.98); }
+
+    .home-card.water-card {
+      align-items: stretch;
+      text-align: left;
+      gap: 6px;
+    }
+
+    .home-card.water-card .top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .home-card.personal-card {
+      align-items: stretch;
+      text-align: center;
+      gap: 6px;
+    }
+
+    .home-greeting {
+      font-size: 0.76rem;
+      color: #334155;
+      min-height: 30px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .home-card.assist-card {
+      align-items: stretch;
+      text-align: left;
+      gap: 6px;
+    }
+
+    .home-assist-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .home-assist-text {
+      font-size: 0.74rem;
+      color: #334155;
+      text-align: center;
+      min-height: 16px;
+      font-weight: 700;
+    }
+
+    .home-assist-bars {
+      display: grid;
+      gap: 5px;
+    }
+
+    .home-assist-row {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: #475569;
+      font-weight: 700;
+    }
+
+    .mini-progress {
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    .mini-progress > div {
+      width: 0%;
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .mini-progress.train > div { background: #16a34a; }
+    .mini-progress.rest > div { background: #f59e0b; }
+
+    .home-water-msg {
+      font-size: 0.75rem;
+      line-height: 1.2;
+      color: #1e3a8a;
+      font-weight: 700;
+      text-align: center;
+      min-height: 30px;
+    }
+
+    .home-water-progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #dbeafe;
+      overflow: hidden;
+    }
+
+    .home-water-progress-bar {
+      width: 0%;
+      height: 100%;
+      transition: width 0.3s ease;
+      background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+    }
+
+    .home-water-avg {
+      font-size: 0.7rem;
+      color: #475569;
+      text-align: center;
+      font-weight: 700;
+    }
 
     .back-btn,
     .btn {
@@ -282,6 +425,230 @@
       to { transform: translateX(0%); }
     }
 
+
+    .asistencia-anim {
+      margin: 10px 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #f8fafc;
+      text-align: center;
+    }
+
+    .gym-character {
+      font-size: 2.3rem;
+      display: inline-block;
+      transform-origin: center bottom;
+    }
+
+    .gym-character.workout {
+      animation: workoutMove 0.9s ease-in-out infinite;
+    }
+
+    .gym-character.rest {
+      animation: restMove 1.8s ease-in-out infinite;
+    }
+
+    .gym-status-text {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .dia {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dia.day-yes {
+      background: #dcfce7;
+      border-color: #86efac;
+      animation: dayPop 0.35s ease;
+    }
+
+    .dia.day-no {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      animation: dayPop 0.35s ease;
+    }
+
+    .dia.day-today {
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+    }
+
+    .dia.selected {
+      outline: 2px solid rgba(99, 102, 241, 0.6);
+      outline-offset: 1px;
+    }
+
+    .dia { cursor: pointer; }
+
+    .tap-hint {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 6px 0 8px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .history-list {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #f8fafc;
+    }
+
+    .history-title {
+      margin: 0 0 6px;
+      font-size: 0.84rem;
+      color: #334155;
+      font-weight: 700;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: #475569;
+      padding: 3px 0;
+    }
+
+    @keyframes workoutMove {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-3px) rotate(-8deg); }
+      75% { transform: translateY(-2px) rotate(8deg); }
+    }
+
+    @keyframes restMove {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(2px); }
+    }
+
+    @keyframes dayPop {
+      from { transform: scale(0.95); }
+      to { transform: scale(1); }
+    }
+
+    .home-week-footer {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f8fafc;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .home-week-days {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      font-size: 0.66rem;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .home-week-days .today {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    .home-avatar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .home-avatar {
+      font-size: 2rem;
+      min-width: 42px;
+      text-align: center;
+    }
+
+    .day-tools {
+      margin: 8px 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #f8fafc;
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      min-height: 32px;
+      padding: 6px 10px;
+      background: #e2e8f0;
+      color: #1e293b;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .tag-btn.active {
+      background: #bfdbfe;
+      border-color: #60a5fa;
+      color: #1e3a8a;
+    }
+
+    .mini-summary {
+      font-size: 0.78rem;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,0.4);
+    }
+
+    .quick-water-fab {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      border-radius: 999px;
+      padding: 12px 14px;
+      min-height: 46px;
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(37,99,235,0.35);
+      z-index: 999;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 72px;
+      transform: translateX(-50%) translateY(8px);
+      background: #0f172a;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 10px 12px;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     #graficaWrap {
       width: 100%;
       min-height: 280px;
@@ -297,11 +664,44 @@
       <h1>Hypertrofia Tracker</h1>
       <p class="subtitle">Selecciona una sección</p>
       <div class="home-grid">
-        <button class="home-card" onclick="showScreen('datosScreen')"><span class="icon">👤</span>Datos personales</button>
-        <button class="home-card" onclick="showScreen('aguaScreen')"><span class="icon">💧</span>Meta de agua</button>
-        <button class="home-card" onclick="showScreen('asistenciaScreen')"><span class="icon">🏋️</span>Asistencia</button>
+        <button class="home-card personal-card" onclick="showScreen('datosScreen')">
+          <div><span class="icon">👤</span> Datos personales</div>
+          <div id="homeGreeting" class="home-greeting">Hola 👋, completa tu nombre.</div>
+        </button>
+        <button class="home-card water-card" onclick="showScreen('aguaScreen')">
+          <div class="top"><span class="icon">💧</span>Meta de agua</div>
+          <div id="homeWaterMessage" class="home-water-msg">Configura tu peso para calcular tu meta.</div>
+          <div class="home-water-progress"><div id="homeWaterProgressBar" class="home-water-progress-bar"></div></div>
+          <div id="homeWaterAvg" class="home-water-avg">Promedio 7 días: 0.00 L</div>
+        </button>
+        <button class="home-card assist-card" onclick="showScreen('asistenciaScreen')">
+          <div class="home-assist-header"><span class="icon">🏋️</span>Asistencia</div>
+          <div id="homeAssistText" class="home-assist-text">Entreno 0/7 · Descanso 0/7</div>
+          <div class="home-assist-bars">
+            <div class="home-assist-row">
+              <span>Entreno</span>
+              <div class="mini-progress train"><div id="homeTrainBar"></div></div>
+            </div>
+            <div class="home-assist-row">
+              <span>Descanso</span>
+              <div class="mini-progress rest"><div id="homeRestBar"></div></div>
+            </div>
+            <div class="home-assist-row">
+              <span>Meta</span>
+              <div class="mini-progress train"><div id="homeGoalBar"></div></div>
+            </div>
+          </div>
+        </button>
         <button class="home-card" onclick="showScreen('gruposScreen')"><span class="icon">💪</span>Grupos musculares</button>
         <button class="home-card" onclick="showScreen('volumenScreen')"><span class="icon">📊</span>Volumen semanal</button>
+      </div>
+      <div class="home-week-footer">
+        <div id="homeTodayText" class="history-title">Hoy es —</div>
+        <div id="homeWeekDays" class="home-week-days"></div>
+        <div class="home-avatar-wrap">
+          <div id="homeAvatarText">Nivel físico semanal</div>
+          <div id="homeAvatar" class="home-avatar">😮‍💨</div>
+        </div>
       </div>
     </section>
 
@@ -340,6 +740,9 @@
         <button class="btn secondary" onclick="resetAgua()">Reset diario</button>
       </div>
       <div class="progress-container"><div id="barraAgua" class="progress-bar"></div></div>
+      <div id="waterHistory" class="history-list">
+        <p class="history-title">Historial de agua (últimos 7 días)</p>
+      </div>
     </section>
 
     <section id="asistenciaScreen" class="screen">
@@ -350,8 +753,33 @@
         <button class="btn secondary" onclick="registrarGym(false)">Descanso</button>
         <button class="btn secondary" onclick="resetSemanaGym()">Reset semanal</button>
       </div>
+      <label>Meta semanal de entreno (días)
+        <input id="metaEntrenoSemanal" type="number" min="1" max="7" step="1" value="4" onchange="actualizarMetaEntrenoSemanal()">
+      </label>
+      <div class="asistencia-anim">
+        <div id="gymCharacter" class="gym-character">🙂</div>
+        <div id="gymStatusText" class="gym-status-text">Marca tu asistencia de hoy</div>
+      </div>
       <p id="gymEmoji" style="font-size:1.3rem; margin:8px 0;"></p>
       <p>Días esta semana: <strong><span id="diasGym">0</span></strong></p>
+      <p class="tap-hint">Toca un día para alternar: pendiente → entreno → descanso.</p>
+      <div class="day-tools">
+        <label>Día seleccionado
+          <input id="diaSeleccionadoLabel" readonly>
+        </label>
+        <button class="btn" onclick="alternarDiaSeleccionado()">Cambiar estado del día seleccionado</button>
+        <div class="quick-tags">
+          <button class="tag-btn" data-tag="Fuerza" onclick="toggleTagDia('Fuerza')">Fuerza</button>
+          <button class="tag-btn" data-tag="Hipertrofia" onclick="toggleTagDia('Hipertrofia')">Hipertrofia</button>
+          <button class="tag-btn" data-tag="Cardio" onclick="toggleTagDia('Cardio')">Cardio</button>
+          <button class="tag-btn" data-tag="Movilidad" onclick="toggleTagDia('Movilidad')">Movilidad</button>
+          <button class="tag-btn" data-tag="Descanso activo" onclick="toggleTagDia('Descanso activo')">Descanso activo</button>
+        </div>
+        <label>Notas del día
+          <textarea id="notaDiaInput" rows="3" placeholder="Ej: piernas pesadas, dormí 6h..." oninput="guardarNotaDia()"></textarea>
+        </label>
+        <div id="miniResumenSemana" class="mini-summary">Resumen semanal: sin datos.</div>
+      </div>
       <div id="semanaVisual"></div>
     </section>
 
@@ -364,10 +792,16 @@
     <section id="volumenScreen" class="screen">
       <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
       <h2>Volumen Semanal</h2>
-      <div class="actions"><button class="btn" onclick="calcularVolumen()">Calcular volumen</button></div>
+      <div class="actions">
+        <button class="btn" onclick="calcularVolumen()">Calcular volumen</button>
+        <button class="btn secondary" onclick="calcularComparacionSemanal()">Comparar semanas</button>
+      </div>
       <div id="graficaWrap"><canvas id="grafica"></canvas></div>
+      <div id="graficaWrap" style="margin-top:10px;"><canvas id="graficaAsistencia"></canvas></div>
     </section>
   </main>
+  <button class="quick-water-fab" onclick="agregarAguaRapida()">+250ml 💧</button>
+  <div id="toast" class="toast">Guardado ✅</div>
 
   <script>
     const camposPersonales = ["nombre", "sexo", "edad", "altura", "peso", "pecho", "brazo", "cintura", "pierna"];
@@ -400,6 +834,12 @@
 
     let datosSeries = {};
     let chart;
+    let chartAsistencia;
+    let historialAgua = {};
+    let historialAsistencia = {};
+    let metaEntrenoSemanal = 4;
+    let diaSeleccionado = "Lunes";
+    let detalleSemana = {};
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
@@ -408,6 +848,212 @@
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
+
+
+    function getDateKey(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getWeekKey(date = new Date()) {
+      const day = date.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const monday = new Date(date);
+      monday.setDate(date.getDate() + diffToMonday);
+      return getDateKey(monday);
+    }
+
+    function guardarSemanaEnHistorial() {
+      historialAsistencia[getWeekKey()] = { ...semana };
+    }
+
+
+    function inicializarDetalleSemana() {
+      for (const dia of diasOrden) {
+        if (!detalleSemana[dia]) detalleSemana[dia] = { nota: "", tags: [] };
+      }
+    }
+
+    function mostrarToast(msg = "Guardado ✅") {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.classList.add("show");
+      clearTimeout(mostrarToast._t);
+      mostrarToast._t = setTimeout(() => toast.classList.remove("show"), 1200);
+    }
+
+    function agregarAguaRapida() {
+      agregarAgua(0.25);
+    }
+
+    function actualizarFooterHomeSemana() {
+      const week = document.getElementById("homeWeekDays");
+      const todayText = document.getElementById("homeTodayText");
+      const avatar = document.getElementById("homeAvatar");
+      const avatarText = document.getElementById("homeAvatarText");
+      if (!week || !todayText || !avatar || !avatarText) return;
+
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const hoyNombre = diasMap[hoy.getDay()];
+      todayText.innerText = `Hoy es ${hoyNombre}`;
+
+      week.innerHTML = diasOrden.map((dia) => {
+        const estado = semana[dia];
+        const mark = estado === true ? "🏋️" : (estado === false ? "🛌" : "⏳");
+        const cls = dia === hoyNombre ? "today" : "";
+        return `<div class="${cls}">${dia.slice(0,3)}<br>${mark}</div>`;
+      }).join("");
+
+      const entreno = Object.values(semana).filter(v => v === true).length;
+      if (entreno <= 0) {
+        avatar.innerText = "🥱";
+        avatarText.innerText = "Sin entrenos aún: el personaje está débil y cansado.";
+      } else if (entreno <= 2) {
+        avatar.innerText = "😓";
+        avatarText.innerText = "Ya empezaste, sigue construyendo fuerza.";
+      } else if (entreno <= 4) {
+        avatar.innerText = "💪";
+        avatarText.innerText = "Buen progreso: te estás volviendo más fuerte.";
+      } else {
+        avatar.innerText = "🦍";
+        avatarText.innerText = "Modo bestia activado esta semana.";
+      }
+    }
+
+    function seleccionarDia(dia) {
+      diaSeleccionado = dia;
+      const input = document.getElementById("diaSeleccionadoLabel");
+      const nota = document.getElementById("notaDiaInput");
+      if (input) input.value = diaSeleccionado;
+      if (nota) nota.value = detalleSemana[diaSeleccionado]?.nota || "";
+
+      document.querySelectorAll('.tag-btn').forEach((b) => {
+        const tag = b.getAttribute('data-tag');
+        b.classList.toggle('active', (detalleSemana[diaSeleccionado]?.tags || []).includes(tag));
+      });
+
+      document.querySelectorAll('#semanaVisual .dia').forEach((el) => {
+        const nombre = (el.querySelector('strong')?.innerText || '').trim();
+        el.classList.toggle('selected', nombre === diaSeleccionado);
+      });
+    }
+
+    function toggleTagDia(tag) {
+      inicializarDetalleSemana();
+      const tags = detalleSemana[diaSeleccionado].tags;
+      const idx = tags.indexOf(tag);
+      if (idx >= 0) tags.splice(idx, 1);
+      else tags.push(tag);
+      seleccionarDia(diaSeleccionado);
+      renderMiniResumenSemana();
+      guardarTodo();
+      mostrarToast("Etiqueta guardada ✅");
+    }
+
+    function guardarNotaDia() {
+      inicializarDetalleSemana();
+      const nota = document.getElementById("notaDiaInput")?.value || "";
+      detalleSemana[diaSeleccionado].nota = nota;
+      renderMiniResumenSemana();
+      guardarTodo();
+    }
+
+    function renderMiniResumenSemana() {
+      inicializarDetalleSemana();
+      const res = document.getElementById("miniResumenSemana");
+      if (!res) return;
+      const countNotas = diasOrden.filter((d) => (detalleSemana[d]?.nota || "").trim().length > 0).length;
+      const tagsCount = {};
+      for (const dia of diasOrden) {
+        for (const t of (detalleSemana[dia]?.tags || [])) {
+          tagsCount[t] = (tagsCount[t] || 0) + 1;
+        }
+      }
+      const top = Object.entries(tagsCount).sort((a,b)=>b[1]-a[1]).slice(0,3)
+        .map(([t,n])=>`${t} (${n})`).join(", ") || "sin etiquetas";
+      res.innerText = `Resumen semanal: ${countNotas} días con notas · Etiquetas top: ${top}.`;
+    }
+
+    function renderWaterHistory() {
+      const cont = document.getElementById("waterHistory");
+      if (!cont) return;
+
+      const items = Object.entries(historialAgua)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 7);
+
+      let html = '<p class="history-title">Historial de agua (últimos 7 días)</p>';
+      if (items.length === 0) {
+        html += '<div class="history-item"><span>Sin registros</span><span>—</span></div>';
+      } else {
+        for (const [fecha, litros] of items) {
+          html += `<div class="history-item"><span>${fecha}</span><span>${Number(litros).toFixed(2)} L</span></div>`;
+        }
+      }
+      cont.innerHTML = html;
+      actualizarPromedioAguaHome();
+    }
+
+    function actualizarHistorialAguaHoy() {
+      historialAgua[getDateKey()] = Number(aguaActual.toFixed(2));
+    }
+
+    function calcularPromedioAgua7Dias() {
+      const items = Object.entries(historialAgua)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 7)
+        .map(([, litros]) => Number(litros) || 0);
+
+      if (items.length === 0) return 0;
+      return items.reduce((acc, n) => acc + n, 0) / items.length;
+    }
+
+    function actualizarPromedioAguaHome() {
+      const avgEl = document.getElementById("homeWaterAvg");
+      if (!avgEl) return;
+      avgEl.innerText = `Promedio 7 días: ${calcularPromedioAgua7Dias().toFixed(2)} L`;
+    }
+
+    function actualizarMetaEntrenoSemanal() {
+      const input = document.getElementById("metaEntrenoSemanal");
+      const value = Math.min(7, Math.max(1, Number.parseInt(input?.value || "4", 10) || 4));
+      metaEntrenoSemanal = value;
+      if (input) input.value = String(value);
+      localStorage.setItem("metaEntrenoSemanal", String(metaEntrenoSemanal));
+      localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
+      actualizarAsistenciaHome();
+      actualizarFooterHomeSemana();
+    }
+
+    function actualizarSaludoHome() {
+      const nombre = (document.getElementById("nombre")?.value || "").trim();
+      const saludo = document.getElementById("homeGreeting");
+      if (!saludo) return;
+      saludo.innerText = nombre
+        ? `Hola ${nombre} 👋, ¡vamos por tus objetivos!`
+        : "Hola 👋, completa tu nombre.";
+    }
+
+    function actualizarAsistenciaHome() {
+      const entreno = Object.values(semana).filter(v => v === true).length;
+      const descanso = Object.values(semana).filter(v => v === false).length;
+      const total = 7;
+
+      const trainBar = document.getElementById("homeTrainBar");
+      const restBar = document.getElementById("homeRestBar");
+      const goalBar = document.getElementById("homeGoalBar");
+      const txt = document.getElementById("homeAssistText");
+
+      if (trainBar) trainBar.style.width = `${(entreno / total) * 100}%`;
+      if (restBar) restBar.style.width = `${(descanso / total) * 100}%`;
+      if (goalBar) goalBar.style.width = `${Math.min((entreno / metaEntrenoSemanal) * 100, 100)}%`;
+      if (txt) txt.innerText = `Entreno ${entreno}/${metaEntrenoSemanal} meta · Descanso ${descanso}/${total}`;
+      actualizarFooterHomeSemana();
+    }
     function guardarTodo() {
       localStorage.setItem("aguaActual", String(aguaActual));
       localStorage.setItem("semana", JSON.stringify(semana));
@@ -420,6 +1066,10 @@
         datosPersonales[id] = el ? el.value : "";
       }
       localStorage.setItem("datosPersonales", JSON.stringify(datosPersonales));
+      localStorage.setItem("historialAgua", JSON.stringify(historialAgua));
+      localStorage.setItem("historialAsistencia", JSON.stringify(historialAsistencia));
+      localStorage.setItem("metaEntrenoSemanal", String(metaEntrenoSemanal));
+      localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
     }
 
     function cargarTodo() {
@@ -428,6 +1078,10 @@
       const seriesGuardadas = localStorage.getItem("datosSeries");
       const metaGuardada = localStorage.getItem("metaAgua");
       const datosPersonales = localStorage.getItem("datosPersonales");
+      const historialAguaGuardado = localStorage.getItem("historialAgua");
+      const historialAsistenciaGuardado = localStorage.getItem("historialAsistencia");
+      const metaEntrenoGuardada = localStorage.getItem("metaEntrenoSemanal");
+      const detalleSemanaGuardado = localStorage.getItem("detalleSemana");
 
       if (aguaGuardada !== null) {
         aguaActual = Number.parseFloat(aguaGuardada) || 0;
@@ -440,6 +1094,16 @@
       if (metaGuardada) {
         document.getElementById("metaAgua").innerText = (Number.parseFloat(metaGuardada) || 0).toFixed(2);
       }
+
+      if (historialAguaGuardado) historialAgua = JSON.parse(historialAguaGuardado);
+      if (historialAsistenciaGuardado) historialAsistencia = JSON.parse(historialAsistenciaGuardado);
+      if (metaEntrenoGuardada) {
+        metaEntrenoSemanal = Math.min(7, Math.max(1, Number.parseInt(metaEntrenoGuardada, 10) || 4));
+      }
+      const metaInput = document.getElementById("metaEntrenoSemanal");
+      if (metaInput) metaInput.value = String(metaEntrenoSemanal);
+      if (detalleSemanaGuardado) detalleSemana = JSON.parse(detalleSemanaGuardado);
+      inicializarDetalleSemana();
 
       if (datosPersonales) {
         const parsed = JSON.parse(datosPersonales);
@@ -456,6 +1120,15 @@
       renderSemana();
       renderSeries();
       actualizarBarraAgua();
+      actualizarAnimacionGymDelDia();
+      actualizarSaludoHome();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      actualizarHistorialAguaHoy();
+      renderWaterHistory();
+      renderMiniResumenSemana();
+      seleccionarDia(diaSeleccionado);
+      actualizarFooterHomeSemana();
     }
 
     function calcularAgua() {
@@ -471,32 +1144,51 @@
       const barra = document.getElementById("barraAgua");
       const bottleWater = document.getElementById("bottleWater");
       const bottlePercent = document.getElementById("bottlePercent");
+      const homeWaterProgressBar = document.getElementById("homeWaterProgressBar");
+      const homeWaterMessage = document.getElementById("homeWaterMessage");
+
       if (meta <= 0) {
         barra.style.width = "0%";
         barra.style.background = "var(--primary)";
         if (bottleWater) bottleWater.style.height = "0%";
         if (bottlePercent) bottlePercent.innerText = "0";
+        if (homeWaterProgressBar) homeWaterProgressBar.style.width = "0%";
+        if (homeWaterMessage) homeWaterMessage.innerText = "Configura tu peso para calcular tu meta.";
         return;
       }
+
       const porcentaje = Math.min((aguaActual / meta) * 100, 100);
+      const faltante = Math.max(meta - aguaActual, 0);
+
       barra.style.width = `${porcentaje}%`;
       barra.style.background = porcentaje >= 100 ? "var(--success)" : "var(--primary)";
       if (bottleWater) bottleWater.style.height = `${porcentaje}%`;
       if (bottlePercent) bottlePercent.innerText = `${Math.round(porcentaje)}`;
+      if (homeWaterProgressBar) homeWaterProgressBar.style.width = `${porcentaje}%`;
+      if (homeWaterMessage) {
+        homeWaterMessage.innerText = faltante > 0
+          ? `Te faltan ${faltante.toFixed(2)} L para tu meta diaria.`
+          : "¡Meta diaria de agua completada!";
+      }
+      renderWaterHistory();
     }
 
     function agregarAgua(cantidad) {
       aguaActual += cantidad;
+      actualizarHistorialAguaHoy();
       document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
       actualizarBarraAgua();
       guardarTodo();
+      mostrarToast("Agua guardada ✅");
     }
 
     function resetAgua() {
       aguaActual = 0;
+      actualizarHistorialAguaHoy();
       document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
       actualizarBarraAgua();
       guardarTodo();
+      mostrarToast("Agua reiniciada ✅");
     }
 
     function registrarGym(fui) {
@@ -506,10 +1198,42 @@
 
       semana[nombreDia] = fui;
       document.getElementById("gymEmoji").innerText = fui ? "💪" : "🛏️";
+      actualizarAnimacionGym(fui);
       diasGym = Object.values(semana).filter(v => v === true).length;
       document.getElementById("diasGym").innerText = String(diasGym);
       renderSemana();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
       guardarTodo();
+      mostrarToast("Asistencia guardada ✅");
+    }
+
+
+    function actualizarAnimacionGym(fui) {
+      const gymCharacter = document.getElementById("gymCharacter");
+      const gymStatusText = document.getElementById("gymStatusText");
+      if (!gymCharacter || !gymStatusText) return;
+
+      gymCharacter.classList.remove("workout", "rest");
+      if (fui === true) {
+        gymCharacter.innerText = "🏃";
+        gymCharacter.classList.add("workout");
+        gymStatusText.innerText = "¡Excelente! Hoy toca entrenar.";
+      } else if (fui === false) {
+        gymCharacter.innerText = "🛌";
+        gymCharacter.classList.add("rest");
+        gymStatusText.innerText = "Hoy toca descanso y recuperación.";
+      } else {
+        gymCharacter.innerText = "🙂";
+        gymStatusText.innerText = "Marca tu asistencia de hoy";
+      }
+    }
+
+    function actualizarAnimacionGymDelDia() {
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const nombreDia = diasMap[hoy.getDay()];
+      actualizarAnimacionGym(semana[nombreDia]);
     }
 
     function resetSemanaGym() {
@@ -517,23 +1241,66 @@
       diasGym = 0;
       document.getElementById("diasGym").innerText = "0";
       document.getElementById("gymEmoji").innerText = "";
+      actualizarAnimacionGym(null);
       renderSemana();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
       guardarTodo();
+      mostrarToast("Semana reiniciada ✅");
     }
 
     function renderSemana() {
       const contenedor = document.getElementById("semanaVisual");
       contenedor.innerHTML = "";
+      const hoy = new Date();
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoyNombre = diasMap[hoy.getDay()];
+
       for (const dia of diasOrden) {
         const estado = semana[dia];
-        let emoji = "—";
-        if (estado === true) emoji = "💪";
-        if (estado === false) emoji = "😞";
+        let emoji = "⏳";
+        if (estado === true) emoji = "🏋️";
+        if (estado === false) emoji = "🛌";
+
         const item = document.createElement("div");
         item.className = "dia";
-        item.innerText = `${dia}: ${emoji}`;
+        if (estado === true) item.classList.add("day-yes");
+        if (estado === false) item.classList.add("day-no");
+        if (dia === hoyNombre) item.classList.add("day-today");
+
+        item.innerHTML = `<strong>${dia}</strong><br>${emoji}`;
+        item.onclick = () => seleccionarDia(dia);
         contenedor.appendChild(item);
       }
+      actualizarAsistenciaHome();
+    }
+
+
+
+    function alternarDiaSeleccionado() {
+      alternarDiaSemana(diaSeleccionado);
+    }
+
+    function alternarDiaSemana(dia) {
+      const actual = semana[dia];
+      const nuevo = actual === null ? true : (actual === true ? false : null);
+      semana[dia] = nuevo;
+
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const hoyNombre = diasMap[hoy.getDay()];
+      if (dia === hoyNombre) {
+        document.getElementById("gymEmoji").innerText = nuevo === true ? "💪" : (nuevo === false ? "🛏️" : "");
+        actualizarAnimacionGym(nuevo);
+      }
+
+      diasGym = Object.values(semana).filter(v => v === true).length;
+      document.getElementById("diasGym").innerText = String(diasGym);
+      renderSemana();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      guardarTodo();
+      mostrarToast("Día actualizado ✅");
     }
 
     function inicializarSeries() {
@@ -657,14 +1424,64 @@
       });
     }
 
+
+    function calcularComparacionSemanal() {
+      const semanaActualKey = getWeekKey();
+      const monday = new Date(semanaActualKey + "T00:00:00");
+      const prevMonday = new Date(monday);
+      prevMonday.setDate(monday.getDate() - 7);
+      const semanaAnteriorKey = getWeekKey(prevMonday);
+
+      const actual = historialAsistencia[semanaActualKey] || semana;
+      const anterior = historialAsistencia[semanaAnteriorKey] || {};
+
+      const entrenoActual = Object.values(actual).filter(v => v === true).length;
+      const descansoActual = Object.values(actual).filter(v => v === false).length;
+      const entrenoAnterior = Object.values(anterior).filter(v => v === true).length;
+      const descansoAnterior = Object.values(anterior).filter(v => v === false).length;
+
+      if (chartAsistencia) chartAsistencia.destroy();
+
+      chartAsistencia = new Chart(document.getElementById("graficaAsistencia"), {
+        type: "bar",
+        data: {
+          labels: ["Entreno", "Descanso"],
+          datasets: [
+            {
+              label: "Semana actual",
+              data: [entrenoActual, descansoActual],
+              backgroundColor: "rgba(37,99,235,0.75)",
+              borderRadius: 6
+            },
+            {
+              label: "Semana anterior",
+              data: [entrenoAnterior, descansoAnterior],
+              backgroundColor: "rgba(100,116,139,0.75)",
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true, max: 7 } },
+          plugins: { legend: { display: true } }
+        }
+      });
+    }
+
     document.addEventListener("input", (e) => {
-      if (camposPersonales.includes(e.target.id)) guardarTodo();
+      if (camposPersonales.includes(e.target.id)) {
+        guardarTodo();
+        if (e.target.id === "nombre") actualizarSaludoHome();
+      }
     });
 
     window.onload = () => {
       renderSeries();
       cargarTodo();
       showScreen('homeScreen');
+      calcularComparacionSemanal();
     };
   </script>
 </body>
