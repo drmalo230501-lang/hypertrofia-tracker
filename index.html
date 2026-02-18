@@ -627,6 +627,23 @@
       z-index: 999;
     }
 
+    .home-fab {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      border: 0;
+      background: #0f172a;
+      color: #fff;
+      font-size: 1.25rem;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.35);
+      z-index: 999;
+    }
+
+    .hidden-fab { display: none; }
+
     .toast {
       position: fixed;
       left: 50%;
@@ -706,7 +723,6 @@
     </section>
 
     <section id="datosScreen" class="screen">
-      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
       <h2>Datos Personales</h2>
       <div class="grid">
         <label>Nombre <input id="nombre" placeholder="Ej: Carlos"></label>
@@ -722,7 +738,6 @@
     </section>
 
     <section id="aguaScreen" class="screen">
-      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
       <h2>Meta de Agua</h2>
       <p>Meta diaria: <strong><span id="metaAgua">0.00</span> L</strong></p>
       <p>Consumido: <strong><span id="aguaActual">0.00</span> L</strong></p>
@@ -746,7 +761,6 @@
     </section>
 
     <section id="asistenciaScreen" class="screen">
-      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
       <h2>Asistencia al gimnasio</h2>
       <div class="actions">
         <button class="btn" onclick="registrarGym(true)">Sí fui</button>
@@ -784,13 +798,11 @@
     </section>
 
     <section id="gruposScreen" class="screen">
-      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
       <h2>Series por Grupo Muscular</h2>
       <div id="grupos"></div>
     </section>
 
     <section id="volumenScreen" class="screen">
-      <button class="back-btn" onclick="showScreen('homeScreen')">⬅ Volver al inicio</button>
       <h2>Volumen Semanal</h2>
       <div class="actions">
         <button class="btn" onclick="calcularVolumen()">Calcular volumen</button>
@@ -800,7 +812,8 @@
       <div id="graficaWrap" style="margin-top:10px;"><canvas id="graficaAsistencia"></canvas></div>
     </section>
   </main>
-  <button class="quick-water-fab" onclick="agregarAguaRapida()">+250ml 💧</button>
+  <button id="quickWaterFab" class="quick-water-fab" onclick="agregarAguaRapida()">+250ml 💧</button>
+  <button id="homeFab" class="home-fab hidden-fab" onclick="showScreen('homeScreen')">🏠</button>
   <div id="toast" class="toast">Guardado ✅</div>
 
   <script>
@@ -845,6 +858,13 @@
       document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
       const target = document.getElementById(screenId);
       if (target) target.classList.add('active');
+
+      const quickWaterFab = document.getElementById('quickWaterFab');
+      const homeFab = document.getElementById('homeFab');
+      const isHome = screenId === 'homeScreen';
+      if (quickWaterFab) quickWaterFab.classList.toggle('hidden-fab', !isHome);
+      if (homeFab) homeFab.classList.toggle('hidden-fab', isHome);
+
       window.scrollTo({ top: 0, behavior: 'instant' });
     }
 
