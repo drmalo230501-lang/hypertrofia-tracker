@@ -1,4 +1,330 @@
 <!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Hypertrofia Tracker Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial; padding: 20px; background: #f4f6f8; }
+.section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 12px; }
+button { padding: 6px 10px; margin: 3px; border-radius: 6px; border: none; cursor: pointer; }
+.progress-container { background: #ddd; border-radius: 10px; overflow: hidden; height: 15px; margin-top: 5px;}
+.progress-bar { height: 100%; width: 0%; transition: 0.3s;}
+.hidden { display: none; }
+input { margin: 3px; padding: 4px; }
+</style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f4f6f8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+
+<h2>Hypertrofia Tracker</h2>
+
+<div class="section">
+<h3>Datos Personales</h3>
+<input id="nombre" placeholder="Nombre">
+<input id="sexo" placeholder="Sexo">
+<input id="edad" type="number" placeholder="Edad">
+<input id="altura" type="number" placeholder="Altura cm">
+<input id="peso" type="number" placeholder="Peso kg" onchange="calcularAgua()">
+<br>
+Circunferencias:
+<input placeholder="Pecho cm">
+<input placeholder="Brazo cm">
+<input placeholder="Cintura cm">
+<input placeholder="Pierna cm">
+</div>
+
+<div class="section">
+<h3>Meta de Agua</h3>
+<p>Meta diaria: <span id="metaAgua">0</span> L</p>
+<h4>Sumar por gotas</h4>
+<button onclick="agregarAgua(0.25)" style="font-size:18px;">💧 250ml</button>
+<button onclick="agregarAgua(0.5)" style="font-size:22px;">💧💧 500ml</button>
+<button onclick="agregarAgua(1)" style="font-size:26px;">💧💧💧 1000ml</button>
+<button onclick="resetAgua()">Reset diario</button>
+<p>Consumido: <span id="aguaActual">0</span> L</p>
+<div class="progress-container">
+<div id="barraAgua" class="progress-bar"></div>
+</div>
+</div>
+
+<div class="section">
+<h3>¿Fui al gimnasio?</h3>
+<button onclick="registrarGym(true)">Sí fui</button>
+<button onclick="registrarGym(false)">Descanso</button>
+<button onclick="resetSemanaGym()">Reset semanal</button>
+<p id="gymEmoji"></p>
+<p>Días esta semana: <span id="diasGym">0</span></p>
+<h4>Semana actual</h4>
+<div id="semanaVisual"></div>
+</div>
+
+<div class="section">
+<h3>Series por Grupo Muscular</h3>
+<div id="grupos"></div>
+</div>
+
+<div class="section">
+<h3>Volumen Semanal</h3>
+<button onclick="calcularVolumen()">Calcular volumen</button>
+<canvas id="grafica"></canvas>
+</div>
+
+<script>
+let aguaActual = 0;
+let diasGym = 0;
+let semana = {
+"Lunes": null,
+"Martes": null,
+"Miércoles": null,
+"Jueves": null,
+"Viernes": null,
+"Sábado": null,
+"Domingo": null
+};
+
+function guardarTodo(){
+localStorage.setItem("aguaActual", aguaActual);
+localStorage.setItem("semana", JSON.stringify(semana));
+localStorage.setItem("datosSeries", JSON.stringify(datosSeries));
+}
+
+function cargarTodo(){
+
+let aguaGuardada = localStorage.getItem("aguaActual");
+let semanaGuardada = localStorage.getItem("semana");
+let seriesGuardadas = localStorage.getItem("datosSeries");
+
+if(aguaGuardada){
+aguaActual = parseFloat(aguaGuardada);
+document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+actualizarBarraAgua();
+}
+
+if(semanaGuardada){
+semana = JSON.parse(semanaGuardada);
+renderSemana();
+diasGym = Object.values(semana).filter(v => v === true).length;
+document.getElementById("diasGym").innerText = diasGym;
+}
+
+if(seriesGuardadas){
+datosSeries = JSON.parse(seriesGuardadas);
+
+for(let musculo in datosSeries){
+if(document.getElementById("valor-"+musculo)){
+document.getElementById("valor-"+musculo).innerText = datosSeries[musculo];
+let porcentaje = (datosSeries[musculo] /
+estructura[getCategoria(musculo)][musculo][1]) * 100;
+
+let barra = document.getElementById("barra-"+musculo);
+barra.style.width = porcentaje+"%";
+}
+}
+}
+}
+
+function getCategoria(musculo){
+for(let categoria in estructura){
+if(estructura[categoria][musculo]){
+return categoria;
+}
+}
+}
+
+function renderSemana(){
+let contenedor = document.getElementById("semanaVisual");
+contenedor.innerHTML = "";
+
+for(let dia in semana){
+let estado = semana[dia];
+let emoji = "";
+if(estado === true) emoji = "💪";
+if(estado === false) emoji = "😞";
+
+contenedor.innerHTML += `<p>${dia}: ${emoji}</p>`;
+}
+}
+
+function calcularAgua() {
+let peso = document.getElementById("peso").value;
+let meta = (peso * 0.035).toFixed(2);
+document.getElementById("metaAgua").innerText = meta;
+}
+
+function sumarAgua() {
+let cantidad = parseFloat(document.getElementById("aguaInput").value);
+if(!cantidad) return;
+aguaActual += cantidad;
+document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+actualizarBarraAgua();
+}
+
+function agregarAgua(cantidad){
+aguaActual += cantidad;
+document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+actualizarBarraAgua();
+guardarTodo();
+}
+
+function actualizarBarraAgua() {
+let meta = parseFloat(document.getElementById("metaAgua").innerText);
+let porcentaje = (aguaActual / meta) * 100;
+let barra = document.getElementById("barraAgua");
+barra.style.width = porcentaje + "%";
+barra.style.background = porcentaje >= 100 ? "green" : "blue";
+}
+
+function resetAgua(){
+aguaActual = 0;
+document.getElementById("aguaActual").innerText = 0;
+actualizarBarraAgua();
+guardarTodo();
+}
+
+function registrarGym(fui){
+let hoy = new Date();
+let dias = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+let nombreDia = dias[hoy.getDay()];
+
+semana[nombreDia] = fui;
+
+if(fui === true){
+document.getElementById("gymEmoji").innerText = "💪";
+}else{
+document.getElementById("gymEmoji").innerText = "🛏️";
+guardarTodo();
+}
+
+diasGym = Object.values(semana).filter(v => v === true).length;
+document.getElementById("diasGym").innerText = diasGym;
+
+renderSemana();
+}
+
+window.onload = function(){
+cargarTodo();
+};
+
+function resetSemanaGym(){
+for(let dia in semana){
+semana[dia] = null;
+}
+diasGym = 0;
+document.getElementById("diasGym").innerText = 0;
+document.getElementById("gymEmoji").innerText = "";
+renderSemana();
+guardarTodo();
+}
+
+let estructura = {
+"Upper Body": {
+"Pecho":[10,20],
+"Espalda":[12,22],
+"Deltoide anterior":[6,12],
+"Deltoide lateral":[8,15],
+"Deltoide posterior":[8,15],
+"Bíceps":[8,15],
+"Tríceps":[8,15],
+"Antebrazo":[6,12]
+},
+"Lower Body":{
+"Cuádriceps":[10,20],
+"Isquiotibiales":[8,15],
+"Glúteos":[8,15],
+"Pantorrillas":[10,20],
+"Aductores":[6,12]
+},
+"Core":{
+"Recto abdominal":[6,15],
+"Oblicuos":[6,15],
+"Erectores espinales":[6,12]
+}
+};
+
+let contenedor = document.getElementById("grupos");
+let datosSeries = {};
+
+for(let categoria in estructura){
+let boton = document.createElement("button");
+boton.innerText = categoria;
+let divCategoria = document.createElement("div");
+divCategoria.classList.add("hidden");
+
+boton.onclick = function(){
+divCategoria.classList.toggle("hidden");
+};
+
+contenedor.appendChild(boton);
+contenedor.appendChild(divCategoria);
+
+for(let musculo in estructura[categoria]){
+let min = estructura[categoria][musculo][0];
+let max = estructura[categoria][musculo][1];
+datosSeries[musculo]=0;
+
+let div = document.createElement("div");
+div.innerHTML = `<b>${musculo}</b> (${min}-${max} series)
+<button onclick="sumarSerie('${musculo}',${min},${max})">+1</button>
+<span id="valor-${musculo}">0</span>
+<div class="progress-container">
+<div id="barra-${musculo}" class="progress-bar"></div>
+</div>`;
+divCategoria.appendChild(div);
+}
+}
+
+function sumarSerie(musculo,min,max){
+datosSeries[musculo]++;
+document.getElementById("valor-"+musculo).innerText = datosSeries[musculo];
+let porcentaje = (datosSeries[musculo]/max)*100;
+let barra = document.getElementById("barra-"+musculo);
+barra.style.width = porcentaje+"%";
+
+if(datosSeries[musculo] < min){
+barra.style.background = "red";
+}else if(datosSeries[musculo] < (min+max)/2){
+barra.style.background = "orange";
+}else{
+barra.style.background = "green";
+guardarTodo();
+}
+}
+
+let chart;
+
+function calcularVolumen(){
+let labels = [];
+let data = [];
+for(let musculo in datosSeries){
+labels.push(musculo);
+data.push(datosSeries[musculo]);
+}
+
+if(chart) chart.destroy();
+
+chart = new Chart(document.getElementById("grafica"),{
+type:"bar",
+data:{
+labels:labels,
+datasets:[{
+label:"Series Totales",
+data:data
+}]
+}
+});
+}
+renderSemana();
+
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -723,7 +1049,7 @@
         </button>
         <button class="home-card assist-card" onclick="showScreen('asistenciaScreen')">
           <div class="home-assist-header"><span class="icon">🏋️</span>Asistencia</div>
-          <div id="homeAssistText" class="home-assist-text">Entreno 0/7 · Descanso 0/7</div>
+          <div id="homeAssistText" class="home-assist-text">Entreno 0/7</div>
           <div class="home-assist-bars">
             <div class="home-assist-row">
               <span>Entreno</span>
@@ -864,6 +1190,7 @@
         <div class="actions">
           <button class="btn" onclick="iniciarPausarRestTimer()">Iniciar / Pausa</button>
           <button class="btn secondary" onclick="reiniciarDescansoNuevaSerie()">Nueva serie (reiniciar)</button>
+          <button class="btn secondary" onclick="resetSeriesContadas()">Reset series</button>
         </div>
         <div class="timer-meta">Series contadas: <span id="restSeriesCount">0</span></div>
       </div>
@@ -1143,7 +1470,7 @@
       if (trainBar) trainBar.style.width = `${(entreno / total) * 100}%`;
       if (restBar) restBar.style.width = `${(descanso / total) * 100}%`;
       if (goalBar) goalBar.style.width = `${Math.min((entreno / metaEntrenoSemanal) * 100, 100)}%`;
-      if (txt) txt.innerText = `Entreno ${entreno}/${metaEntrenoSemanal} meta · Descanso ${descanso}/${total}`;
+      if (txt) txt.innerText = `Entreno ${entreno}/${metaEntrenoSemanal} meta`;
       actualizarFooterHomeSemana();
     }
     function guardarTodo() {
@@ -1678,6 +2005,14 @@
       }
       guardarTodo();
       mostrarToast("Nueva serie contada ✅");
+    }
+
+
+    function resetSeriesContadas() {
+      restSeriesCount = 0;
+      renderRestTimerUI();
+      guardarTodo();
+      mostrarToast("Series reiniciadas ✅");
     }
 
     function calcularGraficaTiempoGym() {
