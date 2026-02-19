@@ -666,6 +666,36 @@
       transform: translateX(-50%) translateY(0);
     }
 
+
+    .timer-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: #f8fafc;
+      margin-bottom: 10px;
+    }
+
+    .timer-big {
+      font-size: 1.8rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .timer-msg {
+      font-size: 0.82rem;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+      min-height: 20px;
+    }
+
+    .timer-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
     #graficaWrap {
       width: 100%;
       min-height: 280px;
@@ -711,6 +741,7 @@
         </button>
         <button class="home-card" onclick="showScreen('gruposScreen')"><span class="icon">💪</span>Grupos musculares</button>
         <button class="home-card" onclick="showScreen('volumenScreen')"><span class="icon">📊</span>Volumen semanal</button>
+        <button class="home-card" onclick="showScreen('cronometroScreen')"><span class="icon">⏱️</span>Cronómetro</button>
       </div>
       <div class="home-week-footer">
         <div id="homeTodayText" class="history-title">Hoy es —</div>
@@ -811,6 +842,35 @@
       <div id="graficaWrap"><canvas id="grafica"></canvas></div>
       <div id="graficaWrap" style="margin-top:10px;"><canvas id="graficaAsistencia"></canvas></div>
     </section>
+
+    <section id="cronometroScreen" class="screen">
+      <h2>Cronómetro</h2>
+
+      <div class="timer-card">
+        <h3 style="margin:0 0 6px;">Tiempo total en gimnasio</h3>
+        <div id="gymTimerDisplay" class="timer-big">00:00:00</div>
+        <div class="actions">
+          <button class="btn" onclick="iniciarPausarGymTimer()">Play / Pausa</button>
+          <button class="btn secondary" onclick="detenerYGuardarGymTimer()">Detener y guardar</button>
+          <button class="btn secondary" onclick="resetGymTimer()">Reset</button>
+        </div>
+        <div class="timer-meta">Hoy acumulado: <span id="hoyGymTiempo">00:00:00</span></div>
+      </div>
+
+      <div class="timer-card">
+        <h3 style="margin:0 0 6px;">Descanso entre series</h3>
+        <div id="restTimerDisplay" class="timer-big">00:00</div>
+        <div id="restTimerMessage" class="timer-msg">Aún no es tiempo, sigue descansando.</div>
+        <div class="actions">
+          <button class="btn" onclick="iniciarPausarRestTimer()">Iniciar / Pausa</button>
+          <button class="btn secondary" onclick="reiniciarDescansoNuevaSerie()">Nueva serie (reiniciar)</button>
+        </div>
+        <div class="timer-meta">Series contadas: <span id="restSeriesCount">0</span></div>
+      </div>
+
+      <div id="graficaWrap"><canvas id="graficaGymTiempo"></canvas></div>
+    </section>
+
   </main>
   <button id="quickWaterFab" class="quick-water-fab" onclick="agregarAguaRapida()">+250ml 💧</button>
   <button id="homeFab" class="home-fab hidden-fab" onclick="showScreen('homeScreen')">🏠</button>
@@ -853,6 +913,16 @@
     let metaEntrenoSemanal = 4;
     let diaSeleccionado = "Lunes";
     let detalleSemana = {};
+    let gymTimerSeconds = 0;
+    let gymTimerRunning = false;
+    let gymTimerInterval = null;
+    let gymTimeWeek = {};
+    let chartGymTiempo;
+
+    let restTimerSeconds = 0;
+    let restTimerRunning = false;
+    let restTimerInterval = null;
+    let restSeriesCount = 0;
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
@@ -1045,6 +1115,8 @@
       if (input) input.value = String(value);
       localStorage.setItem("metaEntrenoSemanal", String(metaEntrenoSemanal));
       localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
+      localStorage.setItem("gymTimeWeek", JSON.stringify(gymTimeWeek));
+      localStorage.setItem("restSeriesCount", String(restSeriesCount));
       actualizarAsistenciaHome();
       actualizarFooterHomeSemana();
     }
@@ -1090,6 +1162,8 @@
       localStorage.setItem("historialAsistencia", JSON.stringify(historialAsistencia));
       localStorage.setItem("metaEntrenoSemanal", String(metaEntrenoSemanal));
       localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
+      localStorage.setItem("gymTimeWeek", JSON.stringify(gymTimeWeek));
+      localStorage.setItem("restSeriesCount", String(restSeriesCount));
     }
 
     function cargarTodo() {
@@ -1102,6 +1176,8 @@
       const historialAsistenciaGuardado = localStorage.getItem("historialAsistencia");
       const metaEntrenoGuardada = localStorage.getItem("metaEntrenoSemanal");
       const detalleSemanaGuardado = localStorage.getItem("detalleSemana");
+      const gymTimeWeekGuardado = localStorage.getItem("gymTimeWeek");
+      const restSeriesCountGuardado = localStorage.getItem("restSeriesCount");
 
       if (aguaGuardada !== null) {
         aguaActual = Number.parseFloat(aguaGuardada) || 0;
@@ -1123,6 +1199,8 @@
       const metaInput = document.getElementById("metaEntrenoSemanal");
       if (metaInput) metaInput.value = String(metaEntrenoSemanal);
       if (detalleSemanaGuardado) detalleSemana = JSON.parse(detalleSemanaGuardado);
+      if (gymTimeWeekGuardado) gymTimeWeek = JSON.parse(gymTimeWeekGuardado);
+      if (restSeriesCountGuardado) restSeriesCount = Number.parseInt(restSeriesCountGuardado, 10) || 0;
       inicializarDetalleSemana();
 
       if (datosPersonales) {
@@ -1490,6 +1568,141 @@
       });
     }
 
+
+    function formatHMS(totalSeconds) {
+      const sec = Math.max(0, Number(totalSeconds) || 0);
+      const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function formatMS(totalSeconds) {
+      const sec = Math.max(0, Number(totalSeconds) || 0);
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function getTodayName() {
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      return diasMap[new Date().getDay()];
+    }
+
+    function renderGymTimerUI() {
+      const d = document.getElementById("gymTimerDisplay");
+      if (d) d.innerText = formatHMS(gymTimerSeconds);
+      const hoy = getTodayName();
+      const hoyEl = document.getElementById("hoyGymTiempo");
+      if (hoyEl) hoyEl.innerText = formatHMS(gymTimeWeek[hoy] || 0);
+    }
+
+    function iniciarPausarGymTimer() {
+      gymTimerRunning = !gymTimerRunning;
+      if (gymTimerRunning) {
+        gymTimerInterval = setInterval(() => {
+          gymTimerSeconds += 1;
+          renderGymTimerUI();
+        }, 1000);
+      } else if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+    }
+
+    function detenerYGuardarGymTimer() {
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+      gymTimerRunning = false;
+      const hoy = getTodayName();
+      gymTimeWeek[hoy] = (gymTimeWeek[hoy] || 0) + gymTimerSeconds;
+      gymTimerSeconds = 0;
+      renderGymTimerUI();
+      calcularGraficaTiempoGym();
+      guardarTodo();
+      mostrarToast("Tiempo de gym guardado ✅");
+    }
+
+    function resetGymTimer() {
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+      gymTimerRunning = false;
+      gymTimerSeconds = 0;
+      renderGymTimerUI();
+    }
+
+    function renderRestTimerUI() {
+      const d = document.getElementById("restTimerDisplay");
+      if (d) d.innerText = formatMS(restTimerSeconds);
+      const s = document.getElementById("restSeriesCount");
+      if (s) s.innerText = String(restSeriesCount);
+
+      const msg = document.getElementById("restTimerMessage");
+      if (!msg) return;
+      if (restTimerSeconds < 150) {
+        msg.innerText = "Aún no es tiempo, sigue descansando.";
+      } else if (restTimerSeconds <= 270) {
+        msg.innerText = "Todo listo, empieza tu serie.";
+      } else {
+        msg.innerText = "Oye, te estás enfriando, haz tu serie.";
+      }
+    }
+
+    function iniciarPausarRestTimer() {
+      restTimerRunning = !restTimerRunning;
+      if (restTimerRunning) {
+        restTimerInterval = setInterval(() => {
+          restTimerSeconds += 1;
+          renderRestTimerUI();
+        }, 1000);
+      } else if (restTimerInterval) {
+        clearInterval(restTimerInterval);
+        restTimerInterval = null;
+      }
+    }
+
+    function reiniciarDescansoNuevaSerie() {
+      restSeriesCount += 1;
+      restTimerSeconds = 0;
+      renderRestTimerUI();
+      if (!restTimerRunning) {
+        restTimerRunning = true;
+        restTimerInterval = setInterval(() => {
+          restTimerSeconds += 1;
+          renderRestTimerUI();
+        }, 1000);
+      }
+      guardarTodo();
+      mostrarToast("Nueva serie contada ✅");
+    }
+
+    function calcularGraficaTiempoGym() {
+      const data = diasOrden.map((dia) => Number(((gymTimeWeek[dia] || 0) / 60).toFixed(1)));
+      if (chartGymTiempo) chartGymTiempo.destroy();
+      chartGymTiempo = new Chart(document.getElementById("graficaGymTiempo"), {
+        type: "bar",
+        data: {
+          labels: diasOrden,
+          datasets: [{
+            label: "Minutos en gimnasio",
+            data,
+            backgroundColor: "rgba(22,163,74,0.75)",
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } },
+          plugins: { legend: { display: true } }
+        }
+      });
+    }
+
     document.addEventListener("input", (e) => {
       if (camposPersonales.includes(e.target.id)) {
         guardarTodo();
@@ -1502,6 +1715,9 @@
       cargarTodo();
       showScreen('homeScreen');
       calcularComparacionSemanal();
+      renderGymTimerUI();
+      renderRestTimerUI();
+      calcularGraficaTiempoGym();
     };
   </script>
 </body>
