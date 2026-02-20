@@ -721,6 +721,18 @@
       justify-content: center;
     }
 
+    .timer-compact {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+
+    .timer-inline-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
     textarea {
       width: 100%;
       border: 1px solid var(--border);
@@ -902,18 +914,19 @@
       <h2>Cronómetro</h2>
 
       <div class="timer-card">
-        <h3 style="margin:0 0 6px;">Tiempo total en gimnasio</h3>
-        <div id="gymTimerDisplay" class="timer-big">00:00:00</div>
-        <div class="actions">
-          <button class="btn icon-btn" onclick="iniciarPausarGymTimer()" aria-label="Play o pausa" title="Play o pausa">⏯️</button>
-          <button class="btn secondary icon-btn" onclick="detenerYGuardarGymTimer()" aria-label="Detener y guardar" title="Detener y guardar">⏹️</button>
-          <button class="btn secondary icon-btn" onclick="resetGymTimer()" aria-label="Reiniciar cronómetro" title="Reiniciar cronómetro">↺</button>
+        <h3 style="margin:0 0 6px;">Tiempo general</h3>
+        <div class="timer-compact">
+          <div id="gymTimerDisplay" class="timer-big">00:00:00</div>
+          <div class="actions">
+            <button id="gymPlayPauseBtn" class="btn icon-btn" onclick="iniciarPausarGymTimer()" aria-label="Play o pausa tiempo general" title="Play o pausa tiempo general">▶️</button>
+          </div>
+          <div class="timer-inline-meta">Hoy acumulado: <span id="hoyGymTiempo">00:00:00</span></div>
+          <button class="btn secondary" onclick="activarModoNotificacionCronometro()">Activar vista en notificación</button>
         </div>
-        <div class="timer-meta">Hoy acumulado: <span id="hoyGymTiempo">00:00:00</span></div>
       </div>
 
       <div class="timer-card">
-        <h3 style="margin:0 0 6px;">Descanso entre series</h3>
+        <h3 style="margin:0 0 6px;">Descanso y series</h3>
         <div id="restTimerDisplay" class="timer-big">00:00</div>
         <div id="restTimerMessage" class="timer-msg">Aún no es tiempo, sigue descansando.</div>
         <div class="actions">
@@ -981,6 +994,8 @@
     let restTimerRunning = false;
     let restTimerInterval = null;
     let restSeriesCount = 0;
+    let timerNotificationEnabled = false;
+    let lastTimerNotificationAt = 0;
 
     function showScreen(screenId) {
       document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
@@ -1656,6 +1671,55 @@
       const hoy = getTodayName();
       const hoyEl = document.getElementById("hoyGymTiempo");
       if (hoyEl) hoyEl.innerText = formatHMS(gymTimeWeek[hoy] || 0);
+      const playPause = document.getElementById("gymPlayPauseBtn");
+      if (playPause) playPause.innerText = gymTimerRunning ? "⏸️" : "▶️";
+    }
+
+    async function notificarEstadoCronometro(force = false) {
+      if (!timerNotificationEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
+      const now = Date.now();
+      if (!force && now - lastTimerNotificationAt < 15000) return;
+      lastTimerNotificationAt = now;
+
+      const estadoGeneral = gymTimerRunning ? `Tiempo general: ${formatHMS(gymTimerSeconds)} (corriendo)` : `Tiempo general: ${formatHMS(gymTimerSeconds)} (pausado)`;
+      const estadoDescanso = `Descanso: ${formatMS(restTimerSeconds)} · Series: ${restSeriesCount}`;
+      const body = `${estadoGeneral}
+${estadoDescanso}`;
+
+      try {
+        if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            await reg.showNotification("Hypertrofia Tracker · Cronómetro", {
+              body,
+              tag: "hypertrofia-timer",
+              renotify: true,
+              requireInteraction: true,
+              icon: "icon.png",
+              badge: "icon.png"
+            });
+            return;
+          }
+        }
+        new Notification("Hypertrofia Tracker · Cronómetro", { body });
+      } catch (_) {}
+    }
+
+    async function activarModoNotificacionCronometro() {
+      if (!("Notification" in window)) {
+        mostrarToast("Notificaciones no soportadas");
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          mostrarToast("Permiso denegado para notificaciones");
+          return;
+        }
+      }
+      timerNotificationEnabled = true;
+      await notificarEstadoCronometro(true);
+      mostrarToast("Notificación de cronómetro activada 🔔");
     }
 
     function iniciarPausarGymTimer() {
@@ -1663,36 +1727,18 @@
       if (gymTimerRunning) {
         gymTimerInterval = setInterval(() => {
           gymTimerSeconds += 1;
+          const hoy = getTodayName();
+          gymTimeWeek[hoy] = gymTimerSeconds;
           renderGymTimerUI();
+          notificarEstadoCronometro();
+          guardarTodo();
         }, 1000);
       } else if (gymTimerInterval) {
         clearInterval(gymTimerInterval);
         gymTimerInterval = null;
+        notificarEstadoCronometro(true);
+        guardarTodo();
       }
-    }
-
-    function detenerYGuardarGymTimer() {
-      if (gymTimerInterval) {
-        clearInterval(gymTimerInterval);
-        gymTimerInterval = null;
-      }
-      gymTimerRunning = false;
-      const hoy = getTodayName();
-      gymTimeWeek[hoy] = (gymTimeWeek[hoy] || 0) + gymTimerSeconds;
-      gymTimerSeconds = 0;
-      renderGymTimerUI();
-      calcularGraficaTiempoGym();
-      guardarTodo();
-      mostrarToast("Tiempo de gym guardado ✅");
-    }
-
-    function resetGymTimer() {
-      if (gymTimerInterval) {
-        clearInterval(gymTimerInterval);
-        gymTimerInterval = null;
-      }
-      gymTimerRunning = false;
-      gymTimerSeconds = 0;
       renderGymTimerUI();
     }
 
@@ -1719,6 +1765,7 @@
         restTimerInterval = setInterval(() => {
           restTimerSeconds += 1;
           renderRestTimerUI();
+          notificarEstadoCronometro();
         }, 1000);
       } else if (restTimerInterval) {
         clearInterval(restTimerInterval);
@@ -1735,9 +1782,11 @@
         restTimerInterval = setInterval(() => {
           restTimerSeconds += 1;
           renderRestTimerUI();
+          notificarEstadoCronometro();
         }, 1000);
       }
       guardarTodo();
+      notificarEstadoCronometro(true);
       mostrarToast("Nueva serie contada ✅");
     }
 
@@ -1745,6 +1794,7 @@
       restSeriesCount = 0;
       guardarTodo();
       renderRestTimerUI();
+      notificarEstadoCronometro(true);
       mostrarToast("Conteo de series reiniciado ↺");
     }
 
@@ -1778,14 +1828,20 @@
       }
     });
 
-    window.onload = () => {
+    window.onload = async () => {
       renderSeries();
       cargarTodo();
+      const hoy = getTodayName();
+      gymTimerSeconds = Number(gymTimeWeek[hoy] || 0);
       showScreen('homeScreen');
       calcularComparacionSemanal();
       renderGymTimerUI();
       renderRestTimerUI();
       calcularGraficaTiempoGym();
+
+      if ("serviceWorker" in navigator) {
+        try { await navigator.serviceWorker.register("sw.js"); } catch (_) {}
+      }
     };
   </script>
 </body>
