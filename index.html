@@ -640,6 +640,29 @@
       z-index: 999;
     }
 
+    .quick-gym-fab {
+      position: fixed;
+      right: 14px;
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      border: 0;
+      color: #fff;
+      font-size: 1.2rem;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.35);
+      z-index: 999;
+    }
+
+    #quickGymYesFab {
+      bottom: 124px;
+      background: var(--success);
+    }
+
+    #quickGymNoFab {
+      bottom: 178px;
+      background: #475569;
+    }
+
     .home-fab {
       position: fixed;
       left: 14px;
@@ -686,6 +709,16 @@
       padding: 10px;
       background: var(--surface);
       margin-bottom: 10px;
+    }
+
+    .icon-btn {
+      min-width: 46px;
+      min-height: 46px;
+      padding: 0;
+      font-size: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     textarea {
@@ -819,8 +852,6 @@
     <section id="asistenciaScreen" class="screen">
       <h2>Asistencia al gimnasio</h2>
       <div class="actions">
-        <button class="btn" onclick="registrarGym(true)">Sí fui</button>
-        <button class="btn secondary" onclick="registrarGym(false)">Descanso</button>
         <button class="btn secondary" onclick="resetSemanaGym()">Reset semanal</button>
       </div>
       <label>Meta semanal de entreno (días)
@@ -837,7 +868,6 @@
         <label>Día seleccionado
           <input id="diaSeleccionadoLabel" readonly>
         </label>
-        <button class="btn" onclick="alternarDiaSeleccionado()">Cambiar estado del día seleccionado</button>
         <div class="quick-tags">
           <button class="tag-btn" data-tag="Fuerza" onclick="toggleTagDia('Fuerza')">Fuerza</button>
           <button class="tag-btn" data-tag="Hipertrofia" onclick="toggleTagDia('Hipertrofia')">Hipertrofia</button>
@@ -875,9 +905,9 @@
         <h3 style="margin:0 0 6px;">Tiempo total en gimnasio</h3>
         <div id="gymTimerDisplay" class="timer-big">00:00:00</div>
         <div class="actions">
-          <button class="btn" onclick="iniciarPausarGymTimer()">Play / Pausa</button>
-          <button class="btn secondary" onclick="detenerYGuardarGymTimer()">Detener y guardar</button>
-          <button class="btn secondary" onclick="resetGymTimer()">Reset</button>
+          <button class="btn icon-btn" onclick="iniciarPausarGymTimer()" aria-label="Play o pausa" title="Play o pausa">⏯️</button>
+          <button class="btn secondary icon-btn" onclick="detenerYGuardarGymTimer()" aria-label="Detener y guardar" title="Detener y guardar">⏹️</button>
+          <button class="btn secondary icon-btn" onclick="resetGymTimer()" aria-label="Reiniciar cronómetro" title="Reiniciar cronómetro">↺</button>
         </div>
         <div class="timer-meta">Hoy acumulado: <span id="hoyGymTiempo">00:00:00</span></div>
       </div>
@@ -887,9 +917,9 @@
         <div id="restTimerDisplay" class="timer-big">00:00</div>
         <div id="restTimerMessage" class="timer-msg">Aún no es tiempo, sigue descansando.</div>
         <div class="actions">
-          <button class="btn" onclick="iniciarPausarRestTimer()">Iniciar / Pausa</button>
-          <button class="btn secondary" onclick="reiniciarDescansoNuevaSerie()">Nueva serie (reiniciar)</button>
-          <button class="btn secondary" onclick="reiniciarConteoSeries()">Reiniciar conteo de series</button>
+          <button class="btn icon-btn" onclick="iniciarPausarRestTimer()" aria-label="Iniciar o pausar descanso" title="Iniciar o pausar descanso">⏯️</button>
+          <button class="btn secondary icon-btn" onclick="reiniciarDescansoNuevaSerie()" aria-label="Nueva serie" title="Nueva serie">🔁</button>
+          <button class="btn secondary icon-btn" onclick="reiniciarConteoSeries()" aria-label="Reiniciar conteo de series" title="Reiniciar conteo de series">🧮</button>
         </div>
         <div class="timer-meta">Series contadas: <span id="restSeriesCount">0</span></div>
       </div>
@@ -899,6 +929,8 @@
 
   </main>
   <button id="quickWaterFab" class="quick-water-fab" onclick="agregarAguaRapida()">+250ml 💧</button>
+  <button id="quickGymYesFab" class="quick-gym-fab" onclick="registrarGym(true)" aria-label="Fui al gym hoy" title="Fui al gym hoy">🏋️</button>
+  <button id="quickGymNoFab" class="quick-gym-fab" onclick="registrarGym(false)" aria-label="Hoy descanso" title="Hoy descanso">🛏️</button>
   <button id="homeFab" class="home-fab hidden-fab" onclick="showScreen('homeScreen')">🏠</button>
   <div id="toast" class="toast">Guardado ✅</div>
 
@@ -956,9 +988,13 @@
       if (target) target.classList.add('active');
 
       const quickWaterFab = document.getElementById('quickWaterFab');
+      const quickGymYesFab = document.getElementById('quickGymYesFab');
+      const quickGymNoFab = document.getElementById('quickGymNoFab');
       const homeFab = document.getElementById('homeFab');
       const isHome = screenId === 'homeScreen';
       if (quickWaterFab) quickWaterFab.classList.toggle('hidden-fab', !isHome);
+      if (quickGymYesFab) quickGymYesFab.classList.toggle('hidden-fab', !isHome);
+      if (quickGymNoFab) quickGymNoFab.classList.toggle('hidden-fab', !isHome);
       if (homeFab) homeFab.classList.toggle('hidden-fab', isHome);
 
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -1393,17 +1429,16 @@
         if (dia === hoyNombre) item.classList.add("day-today");
 
         item.innerHTML = `<strong>${dia}</strong><br>${emoji}`;
-        item.onclick = () => seleccionarDia(dia);
+        item.onclick = () => {
+          alternarDiaSemana(dia);
+          seleccionarDia(dia);
+        };
         contenedor.appendChild(item);
       }
       actualizarAsistenciaHome();
     }
 
 
-
-    function alternarDiaSeleccionado() {
-      alternarDiaSemana(diaSeleccionado);
-    }
 
     function alternarDiaSemana(dia) {
       const actual = semana[dia];
