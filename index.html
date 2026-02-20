@@ -14,8 +14,14 @@
     :root {
       --bg: #eef2ff;
       --card: #ffffff;
+      --surface: #f8fafc;
+      --surface-soft: #e2e8f0;
+      --surface-accent: #dbeafe;
       --text: #0f172a;
       --muted: #64748b;
+      --text-soft: #334155;
+      --text-softer: #475569;
+      --text-accent: #1e3a8a;
       --primary: #2563eb;
       --primary-700: #1d4ed8;
       --success: #16a34a;
@@ -67,8 +73,14 @@
       :root {
         --bg: #0b1220;
         --card: #111827;
+        --surface: #0f172a;
+        --surface-soft: #1e293b;
+        --surface-accent: #1d3557;
         --text: #e5e7eb;
         --muted: #94a3b8;
+        --text-soft: #cbd5e1;
+        --text-softer: #94a3b8;
+        --text-accent: #93c5fd;
         --border: #253047;
         --shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
       }
@@ -114,7 +126,7 @@
     .home-card {
       border: 1px solid var(--border);
       border-radius: 14px;
-      background: #f8fbff;
+      background: var(--surface);
       padding: 14px 10px;
       min-height: 122px;
       display: flex;
@@ -158,7 +170,7 @@
 
     .home-greeting {
       font-size: 0.76rem;
-      color: #334155;
+      color: var(--text-soft);
       min-height: 30px;
       line-height: 1.2;
       font-weight: 700;
@@ -179,7 +191,7 @@
 
     .home-assist-text {
       font-size: 0.74rem;
-      color: #334155;
+      color: var(--text-soft);
       text-align: center;
       min-height: 16px;
       font-weight: 700;
@@ -196,7 +208,7 @@
       align-items: center;
       gap: 6px;
       font-size: 0.7rem;
-      color: #475569;
+      color: var(--text-softer);
       font-weight: 700;
     }
 
@@ -204,7 +216,7 @@
       width: 100%;
       height: 7px;
       border-radius: 999px;
-      background: #e2e8f0;
+      background: var(--surface-soft);
       overflow: hidden;
     }
 
@@ -220,7 +232,7 @@
     .home-water-msg {
       font-size: 0.75rem;
       line-height: 1.2;
-      color: #1e3a8a;
+      color: var(--text-accent);
       font-weight: 700;
       text-align: center;
       min-height: 30px;
@@ -230,7 +242,7 @@
       width: 100%;
       height: 8px;
       border-radius: 999px;
-      background: #dbeafe;
+      background: var(--surface-accent);
       overflow: hidden;
     }
 
@@ -243,7 +255,7 @@
 
     .home-water-avg {
       font-size: 0.7rem;
-      color: #475569;
+      color: var(--text-softer);
       text-align: center;
       font-weight: 700;
     }
@@ -273,8 +285,8 @@
     .back-btn {
       width: 100%;
       margin-bottom: 12px;
-      background: #e2e8f0;
-      color: #0f172a;
+      background: var(--surface-soft);
+      color: var(--text);
     }
 
     .grid {
@@ -299,6 +311,7 @@
       padding: 10px;
       font-size: 0.95rem;
       color: var(--text);
+      background: var(--surface);
     }
 
     .actions {
@@ -311,7 +324,7 @@
     .progress-container {
       height: 12px;
       border-radius: 999px;
-      background: #e2e8f0;
+      background: var(--surface-soft);
       overflow: hidden;
       margin-top: 8px;
     }
@@ -335,7 +348,7 @@
       padding: 8px;
       font-size: 0.84rem;
       text-align: center;
-      background: #f8fafc;
+      background: var(--surface);
     }
 
     .category {
@@ -347,7 +360,7 @@
       border-radius: 12px;
       padding: 10px;
       margin-top: 8px;
-      background: #f8fafc;
+      background: var(--surface);
     }
 
     .muscle-title {
@@ -431,7 +444,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px;
-      background: #f8fafc;
+      background: var(--surface);
       text-align: center;
     }
 
@@ -496,13 +509,13 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px;
-      background: #f8fafc;
+      background: var(--surface);
     }
 
     .history-title {
       margin: 0 0 6px;
       font-size: 0.84rem;
-      color: #334155;
+      color: var(--text-soft);
       font-weight: 700;
     }
 
@@ -511,7 +524,7 @@
       justify-content: space-between;
       gap: 8px;
       font-size: 0.78rem;
-      color: #475569;
+      color: var(--text-softer);
       padding: 3px 0;
     }
 
@@ -535,7 +548,7 @@
       margin-top: 10px;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #f8fafc;
+      background: var(--surface);
       padding: 10px;
       display: grid;
       gap: 8px;
@@ -575,7 +588,7 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px;
-      background: #f8fafc;
+      background: var(--surface);
       display: grid;
       gap: 8px;
     }
@@ -591,8 +604,8 @@
       border-radius: 999px;
       min-height: 32px;
       padding: 6px 10px;
-      background: #e2e8f0;
-      color: #1e293b;
+      background: var(--surface-soft);
+      color: var(--text);
       font-size: 0.78rem;
       font-weight: 700;
     }
@@ -609,7 +622,7 @@
       border: 1px dashed var(--border);
       border-radius: 10px;
       padding: 8px;
-      background: rgba(255,255,255,0.4);
+      background: color-mix(in srgb, var(--card) 55%, transparent);
     }
 
     .quick-water-fab {
@@ -671,8 +684,20 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 10px;
-      background: #f8fafc;
+      background: var(--surface);
       margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 82px;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--surface);
+      resize: vertical;
     }
 
     .timer-big {
@@ -864,6 +889,7 @@
         <div class="actions">
           <button class="btn" onclick="iniciarPausarRestTimer()">Iniciar / Pausa</button>
           <button class="btn secondary" onclick="reiniciarDescansoNuevaSerie()">Nueva serie (reiniciar)</button>
+          <button class="btn secondary" onclick="reiniciarConteoSeries()">Reiniciar conteo de series</button>
         </div>
         <div class="timer-meta">Series contadas: <span id="restSeriesCount">0</span></div>
       </div>
@@ -1678,6 +1704,13 @@
       }
       guardarTodo();
       mostrarToast("Nueva serie contada ✅");
+    }
+
+    function reiniciarConteoSeries() {
+      restSeriesCount = 0;
+      guardarTodo();
+      renderRestTimerUI();
+      mostrarToast("Conteo de series reiniciado ↺");
     }
 
     function calcularGraficaTiempoGym() {
