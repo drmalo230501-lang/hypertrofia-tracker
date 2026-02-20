@@ -1,15 +1,30 @@
 {
+  "id": "/",
   "name": "Hypertrofia Tracker",
-  "short_name": "Tracker",
-  "start_url": "index.html",
+  "short_name": "Hypertrofia",
+  "description": "Seguimiento de hipertrofia, asistencia, agua y cronómetro con soporte PWA.",
+  "lang": "es",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#f4f6f8",
-  "theme_color": "#f4f6f8",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0b1220",
+  "theme_color": "#0f172a",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cronómetro",
+      "short_name": "Timer",
+      "url": "/index.html#cronometro",
+      "icons": [{ "src": "icon.png", "sizes": "192x192" }]
     }
   ]
 }
