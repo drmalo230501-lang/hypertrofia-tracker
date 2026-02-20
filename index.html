@@ -627,7 +627,7 @@
 
     .quick-water-fab {
       position: fixed;
-      right: 14px;
+      left: 14px;
       bottom: 14px;
       border-radius: 999px;
       padding: 12px 14px;
@@ -642,7 +642,7 @@
 
     .quick-gym-fab {
       position: fixed;
-      right: 14px;
+      left: 14px;
       width: 48px;
       height: 48px;
       border-radius: 999px;
@@ -654,12 +654,12 @@
     }
 
     #quickGymYesFab {
-      bottom: 124px;
+      bottom: 68px;
       background: var(--success);
     }
 
     #quickGymNoFab {
-      bottom: 178px;
+      bottom: 122px;
       background: #475569;
     }
 
@@ -987,12 +987,15 @@
     let gymTimerSeconds = 0;
     let gymTimerRunning = false;
     let gymTimerInterval = null;
+    let gymTimerStartedAt = null;
+
     let gymTimeWeek = {};
     let chartGymTiempo;
 
     let restTimerSeconds = 0;
     let restTimerRunning = false;
     let restTimerInterval = null;
+    let restTimerStartedAt = null;
     let restSeriesCount = 0;
     let timerNotificationEnabled = false;
     let lastTimerNotificationAt = 0;
@@ -1194,6 +1197,9 @@
       localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
       localStorage.setItem("gymTimeWeek", JSON.stringify(gymTimeWeek));
       localStorage.setItem("restSeriesCount", String(restSeriesCount));
+      localStorage.setItem("gymTimerStartedAt", gymTimerStartedAt ? String(gymTimerStartedAt) : "");
+      localStorage.setItem("restTimerStartedAt", restTimerStartedAt ? String(restTimerStartedAt) : "");
+      localStorage.setItem("timerNotificationEnabled", timerNotificationEnabled ? "1" : "0");
       actualizarAsistenciaHome();
       actualizarFooterHomeSemana();
     }
@@ -1241,6 +1247,9 @@
       localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
       localStorage.setItem("gymTimeWeek", JSON.stringify(gymTimeWeek));
       localStorage.setItem("restSeriesCount", String(restSeriesCount));
+      localStorage.setItem("gymTimerStartedAt", gymTimerStartedAt ? String(gymTimerStartedAt) : "");
+      localStorage.setItem("restTimerStartedAt", restTimerStartedAt ? String(restTimerStartedAt) : "");
+      localStorage.setItem("timerNotificationEnabled", timerNotificationEnabled ? "1" : "0");
     }
 
     function cargarTodo() {
@@ -1255,6 +1264,9 @@
       const detalleSemanaGuardado = localStorage.getItem("detalleSemana");
       const gymTimeWeekGuardado = localStorage.getItem("gymTimeWeek");
       const restSeriesCountGuardado = localStorage.getItem("restSeriesCount");
+      const gymTimerStartedAtGuardado = localStorage.getItem("gymTimerStartedAt");
+      const restTimerStartedAtGuardado = localStorage.getItem("restTimerStartedAt");
+      const timerNotificationEnabledGuardado = localStorage.getItem("timerNotificationEnabled");
 
       if (aguaGuardada !== null) {
         aguaActual = Number.parseFloat(aguaGuardada) || 0;
@@ -1278,6 +1290,9 @@
       if (detalleSemanaGuardado) detalleSemana = JSON.parse(detalleSemanaGuardado);
       if (gymTimeWeekGuardado) gymTimeWeek = JSON.parse(gymTimeWeekGuardado);
       if (restSeriesCountGuardado) restSeriesCount = Number.parseInt(restSeriesCountGuardado, 10) || 0;
+      gymTimerStartedAt = gymTimerStartedAtGuardado ? Number.parseInt(gymTimerStartedAtGuardado, 10) : null;
+      restTimerStartedAt = restTimerStartedAtGuardado ? Number.parseInt(restTimerStartedAtGuardado, 10) : null;
+      timerNotificationEnabled = timerNotificationEnabledGuardado === "1";
       inicializarDetalleSemana();
 
       if (datosPersonales) {
@@ -1665,44 +1680,46 @@
       return diasMap[new Date().getDay()];
     }
 
+    function getGymElapsedSeconds() {
+      if (!gymTimerRunning || !gymTimerStartedAt) return gymTimerSeconds;
+      return gymTimerSeconds + Math.max(0, Math.floor((Date.now() - gymTimerStartedAt) / 1000));
+    }
+
+    function getRestElapsedSeconds() {
+      if (!restTimerRunning || !restTimerStartedAt) return restTimerSeconds;
+      return restTimerSeconds + Math.max(0, Math.floor((Date.now() - restTimerStartedAt) / 1000));
+    }
+
+    function getCurrentTimerState() {
+      return {
+        gymSeconds: getGymElapsedSeconds(),
+        restSeconds: getRestElapsedSeconds(),
+        seriesCount: restSeriesCount,
+        gymRunning: gymTimerRunning,
+        restRunning: restTimerRunning,
+        notificationsEnabled: timerNotificationEnabled
+      };
+    }
+
+    async function enviarEstadoCronometroASW(force = false) {
+      const now = Date.now();
+      if (!force && now - lastTimerNotificationAt < 1000) return;
+      lastTimerNotificationAt = now;
+      if (!navigator.serviceWorker?.controller) return;
+      navigator.serviceWorker.controller.postMessage({
+        type: "TIMER_STATE_UPDATE",
+        payload: getCurrentTimerState()
+      });
+    }
+
     function renderGymTimerUI() {
       const d = document.getElementById("gymTimerDisplay");
-      if (d) d.innerText = formatHMS(gymTimerSeconds);
+      if (d) d.innerText = formatHMS(getGymElapsedSeconds());
       const hoy = getTodayName();
       const hoyEl = document.getElementById("hoyGymTiempo");
       if (hoyEl) hoyEl.innerText = formatHMS(gymTimeWeek[hoy] || 0);
       const playPause = document.getElementById("gymPlayPauseBtn");
       if (playPause) playPause.innerText = gymTimerRunning ? "⏸️" : "▶️";
-    }
-
-    async function notificarEstadoCronometro(force = false) {
-      if (!timerNotificationEnabled || !("Notification" in window) || Notification.permission !== "granted") return;
-      const now = Date.now();
-      if (!force && now - lastTimerNotificationAt < 15000) return;
-      lastTimerNotificationAt = now;
-
-      const estadoGeneral = gymTimerRunning ? `Tiempo general: ${formatHMS(gymTimerSeconds)} (corriendo)` : `Tiempo general: ${formatHMS(gymTimerSeconds)} (pausado)`;
-      const estadoDescanso = `Descanso: ${formatMS(restTimerSeconds)} · Series: ${restSeriesCount}`;
-      const body = `${estadoGeneral}
-${estadoDescanso}`;
-
-      try {
-        if (navigator.serviceWorker && navigator.serviceWorker.getRegistration) {
-          const reg = await navigator.serviceWorker.getRegistration();
-          if (reg) {
-            await reg.showNotification("Hypertrofia Tracker · Cronómetro", {
-              body,
-              tag: "hypertrofia-timer",
-              renotify: true,
-              requireInteraction: true,
-              icon: "icon.png",
-              badge: "icon.png"
-            });
-            return;
-          }
-        }
-        new Notification("Hypertrofia Tracker · Cronómetro", { body });
-      } catch (_) {}
     }
 
     async function activarModoNotificacionCronometro() {
@@ -1718,41 +1735,51 @@ ${estadoDescanso}`;
         }
       }
       timerNotificationEnabled = true;
-      await notificarEstadoCronometro(true);
+      guardarTodo();
+      await enviarEstadoCronometroASW(true);
       mostrarToast("Notificación de cronómetro activada 🔔");
     }
 
     function iniciarPausarGymTimer() {
-      gymTimerRunning = !gymTimerRunning;
+      const hoy = getTodayName();
       if (gymTimerRunning) {
+        gymTimerSeconds = getGymElapsedSeconds();
+        gymTimeWeek[hoy] = gymTimerSeconds;
+        gymTimerRunning = false;
+        gymTimerStartedAt = null;
+        if (gymTimerInterval) {
+          clearInterval(gymTimerInterval);
+          gymTimerInterval = null;
+        }
+      } else {
+        gymTimerRunning = true;
+        gymTimerStartedAt = Date.now();
         gymTimerInterval = setInterval(() => {
-          gymTimerSeconds += 1;
-          const hoy = getTodayName();
-          gymTimeWeek[hoy] = gymTimerSeconds;
+          const current = getGymElapsedSeconds();
+          gymTimeWeek[getTodayName()] = current;
           renderGymTimerUI();
-          notificarEstadoCronometro();
+          enviarEstadoCronometroASW();
           guardarTodo();
         }, 1000);
-      } else if (gymTimerInterval) {
-        clearInterval(gymTimerInterval);
-        gymTimerInterval = null;
-        notificarEstadoCronometro(true);
-        guardarTodo();
       }
+
       renderGymTimerUI();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
     }
 
     function renderRestTimerUI() {
       const d = document.getElementById("restTimerDisplay");
-      if (d) d.innerText = formatMS(restTimerSeconds);
+      if (d) d.innerText = formatMS(getRestElapsedSeconds());
       const s = document.getElementById("restSeriesCount");
       if (s) s.innerText = String(restSeriesCount);
 
       const msg = document.getElementById("restTimerMessage");
       if (!msg) return;
-      if (restTimerSeconds < 150) {
+      const currentRestSeconds = getRestElapsedSeconds();
+      if (currentRestSeconds < 150) {
         msg.innerText = "Aún no es tiempo, sigue descansando.";
-      } else if (restTimerSeconds <= 270) {
+      } else if (currentRestSeconds <= 270) {
         msg.innerText = "Todo listo, empieza tu serie.";
       } else {
         msg.innerText = "Oye, te estás enfriando, haz tu serie.";
@@ -1760,33 +1787,43 @@ ${estadoDescanso}`;
     }
 
     function iniciarPausarRestTimer() {
-      restTimerRunning = !restTimerRunning;
       if (restTimerRunning) {
+        restTimerSeconds = getRestElapsedSeconds();
+        restTimerRunning = false;
+        restTimerStartedAt = null;
+        if (restTimerInterval) {
+          clearInterval(restTimerInterval);
+          restTimerInterval = null;
+        }
+      } else {
+        restTimerRunning = true;
+        restTimerStartedAt = Date.now();
         restTimerInterval = setInterval(() => {
-          restTimerSeconds += 1;
           renderRestTimerUI();
-          notificarEstadoCronometro();
+          enviarEstadoCronometroASW();
+          guardarTodo();
         }, 1000);
-      } else if (restTimerInterval) {
-        clearInterval(restTimerInterval);
-        restTimerInterval = null;
       }
+      renderRestTimerUI();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
     }
 
     function reiniciarDescansoNuevaSerie() {
       restSeriesCount += 1;
       restTimerSeconds = 0;
+      restTimerStartedAt = Date.now();
       renderRestTimerUI();
       if (!restTimerRunning) {
         restTimerRunning = true;
         restTimerInterval = setInterval(() => {
-          restTimerSeconds += 1;
           renderRestTimerUI();
-          notificarEstadoCronometro();
+          enviarEstadoCronometroASW();
+          guardarTodo();
         }, 1000);
       }
       guardarTodo();
-      notificarEstadoCronometro(true);
+      enviarEstadoCronometroASW(true);
       mostrarToast("Nueva serie contada ✅");
     }
 
@@ -1794,7 +1831,7 @@ ${estadoDescanso}`;
       restSeriesCount = 0;
       guardarTodo();
       renderRestTimerUI();
-      notificarEstadoCronometro(true);
+      enviarEstadoCronometroASW(true);
       mostrarToast("Conteo de series reiniciado ↺");
     }
 
@@ -1835,13 +1872,29 @@ ${estadoDescanso}`;
       gymTimerSeconds = Number(gymTimeWeek[hoy] || 0);
       showScreen('homeScreen');
       calcularComparacionSemanal();
+
+      if ("serviceWorker" in navigator) {
+        try {
+          await navigator.serviceWorker.register("/sw.js");
+          await navigator.serviceWorker.ready;
+          navigator.serviceWorker.addEventListener("message", (event) => {
+            if (event.data?.type === "SW_ADD_SERIES") {
+              reiniciarDescansoNuevaSerie();
+            }
+            if (event.data?.type === "SW_RESET_SERIES") {
+              reiniciarConteoSeries();
+            }
+            if (event.data?.type === "SW_OPEN_TIMER") {
+              showScreen("cronometroScreen");
+            }
+          });
+          enviarEstadoCronometroASW(true);
+        } catch (_) {}
+      }
+
       renderGymTimerUI();
       renderRestTimerUI();
       calcularGraficaTiempoGym();
-
-      if ("serviceWorker" in navigator) {
-        try { await navigator.serviceWorker.register("sw.js"); } catch (_) {}
-      }
     };
   </script>
 </body>
