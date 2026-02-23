@@ -627,7 +627,7 @@
 
     .quick-water-fab {
       position: fixed;
-      left: 14px;
+      right: 14px;
       bottom: 14px;
       border-radius: 999px;
       padding: 12px 14px;
@@ -918,7 +918,9 @@
         <div class="timer-compact">
           <div id="gymTimerDisplay" class="timer-big">00:00:00</div>
           <div class="actions">
-            <button id="gymPlayPauseBtn" class="btn icon-btn" onclick="iniciarPausarGymTimer()" aria-label="Play o pausa tiempo general" title="Play o pausa tiempo general">▶️</button>
+            <button id="gymPlayPauseBtn" class="btn icon-btn" onclick="iniciarPausarGymTimer()" aria-label="Iniciar tiempo general" title="Iniciar tiempo general">▶️</button>
+            <button class="btn secondary icon-btn" onclick="pausarGymTimer()" aria-label="Pausar tiempo general" title="Pausar tiempo general">⏸️</button>
+            <button class="btn secondary icon-btn" onclick="reiniciarYGuardarGymTimer()" aria-label="Reiniciar y guardar tiempo general" title="Reiniciar y guardar tiempo general">↺</button>
           </div>
           <div class="timer-inline-meta">Hoy acumulado: <span id="hoyGymTiempo">00:00:00</span></div>
           <button class="btn secondary" onclick="activarModoNotificacionCronometro()">Activar vista en notificación</button>
@@ -1200,6 +1202,8 @@
       localStorage.setItem("gymTimerStartedAt", gymTimerStartedAt ? String(gymTimerStartedAt) : "");
       localStorage.setItem("restTimerStartedAt", restTimerStartedAt ? String(restTimerStartedAt) : "");
       localStorage.setItem("timerNotificationEnabled", timerNotificationEnabled ? "1" : "0");
+      localStorage.setItem("gymTimerSeconds", String(gymTimerSeconds));
+      localStorage.setItem("gymTimerRunning", gymTimerRunning ? "1" : "0");
       actualizarAsistenciaHome();
       actualizarFooterHomeSemana();
     }
@@ -1250,6 +1254,8 @@
       localStorage.setItem("gymTimerStartedAt", gymTimerStartedAt ? String(gymTimerStartedAt) : "");
       localStorage.setItem("restTimerStartedAt", restTimerStartedAt ? String(restTimerStartedAt) : "");
       localStorage.setItem("timerNotificationEnabled", timerNotificationEnabled ? "1" : "0");
+      localStorage.setItem("gymTimerSeconds", String(gymTimerSeconds));
+      localStorage.setItem("gymTimerRunning", gymTimerRunning ? "1" : "0");
     }
 
     function cargarTodo() {
@@ -1267,6 +1273,8 @@
       const gymTimerStartedAtGuardado = localStorage.getItem("gymTimerStartedAt");
       const restTimerStartedAtGuardado = localStorage.getItem("restTimerStartedAt");
       const timerNotificationEnabledGuardado = localStorage.getItem("timerNotificationEnabled");
+      const gymTimerSecondsGuardado = localStorage.getItem("gymTimerSeconds");
+      const gymTimerRunningGuardado = localStorage.getItem("gymTimerRunning");
 
       if (aguaGuardada !== null) {
         aguaActual = Number.parseFloat(aguaGuardada) || 0;
@@ -1293,6 +1301,9 @@
       gymTimerStartedAt = gymTimerStartedAtGuardado ? Number.parseInt(gymTimerStartedAtGuardado, 10) : null;
       restTimerStartedAt = restTimerStartedAtGuardado ? Number.parseInt(restTimerStartedAtGuardado, 10) : null;
       timerNotificationEnabled = timerNotificationEnabledGuardado === "1";
+      if (gymTimerSecondsGuardado !== null) gymTimerSeconds = Number.parseInt(gymTimerSecondsGuardado, 10) || 0;
+      gymTimerRunning = gymTimerRunningGuardado === "1";
+      if (gymTimerRunning && !gymTimerStartedAt) gymTimerRunning = false;
       inicializarDetalleSemana();
 
       if (datosPersonales) {
@@ -1717,7 +1728,8 @@
       if (d) d.innerText = formatHMS(getGymElapsedSeconds());
       const hoy = getTodayName();
       const hoyEl = document.getElementById("hoyGymTiempo");
-      if (hoyEl) hoyEl.innerText = formatHMS(gymTimeWeek[hoy] || 0);
+      const acumuladoHoy = (gymTimeWeek[hoy] || 0) + getGymElapsedSeconds();
+      if (hoyEl) hoyEl.innerText = formatHMS(acumuladoHoy);
       const playPause = document.getElementById("gymPlayPauseBtn");
       if (playPause) playPause.innerText = gymTimerRunning ? "⏸️" : "▶️";
     }
@@ -1741,31 +1753,55 @@
     }
 
     function iniciarPausarGymTimer() {
-      const hoy = getTodayName();
       if (gymTimerRunning) {
-        gymTimerSeconds = getGymElapsedSeconds();
-        gymTimeWeek[hoy] = gymTimerSeconds;
-        gymTimerRunning = false;
-        gymTimerStartedAt = null;
-        if (gymTimerInterval) {
-          clearInterval(gymTimerInterval);
-          gymTimerInterval = null;
-        }
-      } else {
-        gymTimerRunning = true;
-        gymTimerStartedAt = Date.now();
-        gymTimerInterval = setInterval(() => {
-          const current = getGymElapsedSeconds();
-          gymTimeWeek[getTodayName()] = current;
-          renderGymTimerUI();
-          enviarEstadoCronometroASW();
-          guardarTodo();
-        }, 1000);
+        return pausarGymTimer();
       }
+      gymTimerRunning = true;
+      gymTimerStartedAt = Date.now();
+      if (gymTimerInterval) clearInterval(gymTimerInterval);
+      gymTimerInterval = setInterval(() => {
+        renderGymTimerUI();
+        enviarEstadoCronometroASW();
+        guardarTodo();
+      }, 1000);
 
       renderGymTimerUI();
       enviarEstadoCronometroASW(true);
       guardarTodo();
+    }
+
+    function pausarGymTimer() {
+      if (!gymTimerRunning) return;
+      gymTimerSeconds = getGymElapsedSeconds();
+      gymTimerRunning = false;
+      gymTimerStartedAt = null;
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+      renderGymTimerUI();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
+    }
+
+    function reiniciarYGuardarGymTimer() {
+      const hoy = getTodayName();
+      const sessionSeconds = getGymElapsedSeconds();
+      if (sessionSeconds > 0) {
+        gymTimeWeek[hoy] = (gymTimeWeek[hoy] || 0) + sessionSeconds;
+      }
+      gymTimerSeconds = 0;
+      gymTimerRunning = false;
+      gymTimerStartedAt = null;
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+      renderGymTimerUI();
+      calcularGraficaTiempoGym();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
+      mostrarToast("Tiempo general guardado y reiniciado ✅");
     }
 
     function renderRestTimerUI() {
@@ -1868,8 +1904,6 @@
     window.onload = async () => {
       renderSeries();
       cargarTodo();
-      const hoy = getTodayName();
-      gymTimerSeconds = Number(gymTimeWeek[hoy] || 0);
       showScreen('homeScreen');
       calcularComparacionSemanal();
 
@@ -1890,6 +1924,15 @@
           });
           enviarEstadoCronometroASW(true);
         } catch (_) {}
+      }
+
+      if (gymTimerRunning) {
+        if (gymTimerInterval) clearInterval(gymTimerInterval);
+        gymTimerInterval = setInterval(() => {
+          renderGymTimerUI();
+          enviarEstadoCronometroASW();
+          guardarTodo();
+        }, 1000);
       }
 
       renderGymTimerUI();
