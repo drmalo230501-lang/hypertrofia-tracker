@@ -1,30 +1,1992 @@
-{
-  "id": "/",
-  "name": "Hypertrofia Tracker",
-  "short_name": "Hypertrofia",
-  "description": "Seguimiento de hipertrofia, asistencia, agua y cronómetro con soporte PWA.",
-  "lang": "es",
-  "start_url": "/index.html",
-  "scope": "/",
-  "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
-  "orientation": "portrait-primary",
-  "background_color": "#0b1220",
-  "theme_color": "#0f172a",
-  "icons": [
-    {
-      "src": "icon.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Hypertrofia Tracker Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icon.png">
+  <style>
+    :root {
+      --bg: #eef2ff;
+      --card: #ffffff;
+      --surface: #f8fafc;
+      --surface-soft: #e2e8f0;
+      --surface-accent: #dbeafe;
+      --text: #0f172a;
+      --muted: #64748b;
+      --text-soft: #334155;
+      --text-softer: #475569;
+      --text-accent: #1e3a8a;
+      --primary: #2563eb;
+      --primary-700: #1d4ed8;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --border: #dbe3f0;
+      --shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+      --radius: 16px;
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "Cronómetro",
-      "short_name": "Timer",
-      "url": "/index.html#cronometro",
-      "icons": [{ "src": "icon.png", "sizes": "192x192" }]
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: radial-gradient(circle at top, #dbeafe 0%, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 12px;
+      -webkit-font-smoothing: antialiased;
     }
-  ]
-}
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .screen {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-height: calc(100dvh - 24px);
+    }
+
+    .screen.active {
+      display: block;
+      animation: screenIn 0.24s ease;
+    }
+
+    @keyframes screenIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1220;
+        --card: #111827;
+        --surface: #0f172a;
+        --surface-soft: #1e293b;
+        --surface-accent: #1d3557;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --text-soft: #cbd5e1;
+        --text-softer: #94a3b8;
+        --text-accent: #93c5fd;
+        --border: #253047;
+        --shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+      }
+
+      body {
+        background: radial-gradient(circle at top, #0f172a 0%, var(--bg) 45%);
+      }
+
+      .home-card,
+      .muscle-card,
+      .asistencia-anim,
+      .history-list,
+      .dia { background: #0f172a; }
+
+      .mini-progress,
+      .progress-container { background: #1e293b; }
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 10px 0;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      margin: 0 0 12px 0;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0 0 16px 0;
+      text-align: center;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .home-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      padding: 14px 10px;
+      min-height: 122px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .home-card .icon {
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .home-card:active { transform: scale(0.98); }
+
+    .home-card.water-card {
+      align-items: stretch;
+      text-align: left;
+      gap: 6px;
+    }
+
+    .home-card.water-card .top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .home-card.personal-card {
+      align-items: stretch;
+      text-align: center;
+      gap: 6px;
+    }
+
+    .home-greeting {
+      font-size: 0.76rem;
+      color: var(--text-soft);
+      min-height: 30px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .home-card.assist-card {
+      align-items: stretch;
+      text-align: left;
+      gap: 6px;
+    }
+
+    .home-assist-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .home-assist-text {
+      font-size: 0.74rem;
+      color: var(--text-soft);
+      text-align: center;
+      min-height: 16px;
+      font-weight: 700;
+    }
+
+    .home-assist-bars {
+      display: grid;
+      gap: 5px;
+    }
+
+    .home-assist-row {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--text-softer);
+      font-weight: 700;
+    }
+
+    .mini-progress {
+      width: 100%;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      overflow: hidden;
+    }
+
+    .mini-progress > div {
+      width: 0%;
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .mini-progress.train > div { background: #16a34a; }
+    .mini-progress.rest > div { background: #f59e0b; }
+
+    .home-water-msg {
+      font-size: 0.75rem;
+      line-height: 1.2;
+      color: var(--text-accent);
+      font-weight: 700;
+      text-align: center;
+      min-height: 30px;
+    }
+
+    .home-water-progress {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--surface-accent);
+      overflow: hidden;
+    }
+
+    .home-water-progress-bar {
+      width: 0%;
+      height: 100%;
+      transition: width 0.3s ease;
+      background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+    }
+
+    .home-water-avg {
+      font-size: 0.7rem;
+      color: var(--text-softer);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .back-btn,
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      min-height: 44px;
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn.secondary {
+      background: #475569;
+      color: #fff;
+    }
+
+    .back-btn {
+      width: 100%;
+      margin-bottom: 12px;
+      background: var(--surface-soft);
+      color: var(--text);
+    }
+
+    .grid {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: 1fr;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 42px;
+      padding: 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .progress-container {
+      height: 12px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.2s ease;
+    }
+
+    #semanaVisual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .dia {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      font-size: 0.84rem;
+      text-align: center;
+      background: var(--surface);
+    }
+
+    .category {
+      margin-bottom: 8px;
+    }
+
+    .muscle-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 8px;
+      background: var(--surface);
+    }
+
+    .muscle-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .hidden { display: none; }
+
+    .bottle-wrap {
+      margin: 14px auto 6px;
+      width: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bottle-cap {
+      width: 42px;
+      height: 10px;
+      border-radius: 8px;
+      background: #64748b;
+    }
+
+    .bottle {
+      width: 96px;
+      height: 190px;
+      border: 3px solid #94a3b8;
+      border-radius: 18px 18px 20px 20px;
+      background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.65);
+    }
+
+    .bottle-water {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+      transition: height 0.45s ease;
+    }
+
+    .bottle-water::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 0;
+      width: 220%;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.35);
+      border-radius: 45%;
+      animation: wave 2.4s linear infinite;
+    }
+
+    .bottle-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    @keyframes wave {
+      from { transform: translateX(-52%); }
+      to { transform: translateX(0%); }
+    }
+
+
+    .asistencia-anim {
+      margin: 10px 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: var(--surface);
+      text-align: center;
+    }
+
+    .gym-character {
+      font-size: 2.3rem;
+      display: inline-block;
+      transform-origin: center bottom;
+    }
+
+    .gym-character.workout {
+      animation: workoutMove 0.9s ease-in-out infinite;
+    }
+
+    .gym-character.rest {
+      animation: restMove 1.8s ease-in-out infinite;
+    }
+
+    .gym-status-text {
+      font-size: 0.83rem;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 700;
+    }
+
+    .dia {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .dia.day-yes {
+      background: #dcfce7;
+      border-color: #86efac;
+      animation: dayPop 0.35s ease;
+    }
+
+    .dia.day-no {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      animation: dayPop 0.35s ease;
+    }
+
+    .dia.day-today {
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+    }
+
+    .dia.selected {
+      outline: 2px solid rgba(99, 102, 241, 0.6);
+      outline-offset: 1px;
+    }
+
+    .dia { cursor: pointer; }
+
+    .tap-hint {
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin: 6px 0 8px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .history-list {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: var(--surface);
+    }
+
+    .history-title {
+      margin: 0 0 6px;
+      font-size: 0.84rem;
+      color: var(--text-soft);
+      font-weight: 700;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-softer);
+      padding: 3px 0;
+    }
+
+    @keyframes workoutMove {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-3px) rotate(-8deg); }
+      75% { transform: translateY(-2px) rotate(8deg); }
+    }
+
+    @keyframes restMove {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(2px); }
+    }
+
+    @keyframes dayPop {
+      from { transform: scale(0.95); }
+      to { transform: scale(1); }
+    }
+
+    .home-week-footer {
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .home-week-days {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 4px;
+      font-size: 0.66rem;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .home-week-days .today {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    .home-avatar-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .home-avatar {
+      font-size: 2rem;
+      min-width: 42px;
+      text-align: center;
+    }
+
+    .day-tools {
+      margin: 8px 0;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: var(--surface);
+      display: grid;
+      gap: 8px;
+    }
+
+    .quick-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      min-height: 32px;
+      padding: 6px 10px;
+      background: var(--surface-soft);
+      color: var(--text);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .tag-btn.active {
+      background: #bfdbfe;
+      border-color: #60a5fa;
+      color: #1e3a8a;
+    }
+
+    .mini-summary {
+      font-size: 0.78rem;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 8px;
+      background: color-mix(in srgb, var(--card) 55%, transparent);
+    }
+
+    .quick-water-fab {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      border-radius: 999px;
+      padding: 12px 14px;
+      min-height: 46px;
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(37,99,235,0.35);
+      z-index: 999;
+    }
+
+    .quick-gym-fab {
+      position: fixed;
+      left: 14px;
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      border: 0;
+      color: #fff;
+      font-size: 1.2rem;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.35);
+      z-index: 999;
+    }
+
+    #quickGymYesFab {
+      bottom: 68px;
+      background: var(--success);
+    }
+
+    #quickGymNoFab {
+      bottom: 122px;
+      background: #475569;
+    }
+
+    .home-fab {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      width: 48px;
+      height: 48px;
+      border-radius: 999px;
+      border: 0;
+      background: #0f172a;
+      color: #fff;
+      font-size: 1.25rem;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.35);
+      z-index: 999;
+    }
+
+    .hidden-fab { display: none; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 72px;
+      transform: translateX(-50%) translateY(8px);
+      background: #0f172a;
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 10px 12px;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+
+    .timer-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      background: var(--surface);
+      margin-bottom: 10px;
+    }
+
+    .icon-btn {
+      min-width: 46px;
+      min-height: 46px;
+      padding: 0;
+      font-size: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-compact {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+    }
+
+    .timer-inline-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-height: 82px;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--surface);
+      resize: vertical;
+    }
+
+    .timer-big {
+      font-size: 1.8rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 6px 0;
+    }
+
+    .timer-msg {
+      font-size: 0.82rem;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 700;
+      min-height: 20px;
+    }
+
+    .timer-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    #graficaWrap {
+      width: 100%;
+      min-height: 280px;
+      max-height: 360px;
+    }
+
+    canvas { width: 100% !important; height: 100% !important; }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="homeScreen" class="screen active">
+      <h1>Hypertrofia Tracker</h1>
+      <p class="subtitle">Selecciona una sección</p>
+      <div class="home-grid">
+        <button class="home-card personal-card" onclick="showScreen('datosScreen')">
+          <div><span class="icon">👤</span> Datos personales</div>
+          <div id="homeGreeting" class="home-greeting">Hola 👋, completa tu nombre.</div>
+        </button>
+        <button class="home-card water-card" onclick="showScreen('aguaScreen')">
+          <div class="top"><span class="icon">💧</span>Meta de agua</div>
+          <div id="homeWaterMessage" class="home-water-msg">Configura tu peso para calcular tu meta.</div>
+          <div class="home-water-progress"><div id="homeWaterProgressBar" class="home-water-progress-bar"></div></div>
+          <div id="homeWaterAvg" class="home-water-avg">Promedio 7 días: 0.00 L</div>
+        </button>
+        <button class="home-card assist-card" onclick="showScreen('asistenciaScreen')">
+          <div class="home-assist-header"><span class="icon">🏋️</span>Asistencia</div>
+          <div id="homeAssistText" class="home-assist-text">Entreno 0/7 · Descanso 0/7</div>
+          <div class="home-assist-bars">
+            <div class="home-assist-row">
+              <span>Entreno</span>
+              <div class="mini-progress train"><div id="homeTrainBar"></div></div>
+            </div>
+            <div class="home-assist-row">
+              <span>Descanso</span>
+              <div class="mini-progress rest"><div id="homeRestBar"></div></div>
+            </div>
+            <div class="home-assist-row">
+              <span>Meta</span>
+              <div class="mini-progress train"><div id="homeGoalBar"></div></div>
+            </div>
+          </div>
+        </button>
+        <button class="home-card" onclick="showScreen('gruposScreen')"><span class="icon">💪</span>Grupos musculares</button>
+        <button class="home-card" onclick="showScreen('volumenScreen')"><span class="icon">📊</span>Volumen semanal</button>
+        <button class="home-card" onclick="showScreen('cronometroScreen')"><span class="icon">⏱️</span>Cronómetro</button>
+      </div>
+      <div class="home-week-footer">
+        <div id="homeTodayText" class="history-title">Hoy es —</div>
+        <div id="homeWeekDays" class="home-week-days"></div>
+        <div class="home-avatar-wrap">
+          <div id="homeAvatarText">Nivel físico semanal</div>
+          <div id="homeAvatar" class="home-avatar">😮‍💨</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="datosScreen" class="screen">
+      <h2>Datos Personales</h2>
+      <div class="grid">
+        <label>Nombre <input id="nombre" placeholder="Ej: Carlos"></label>
+        <label>Sexo <input id="sexo" placeholder="Ej: Masculino"></label>
+        <label>Edad <input id="edad" type="number" min="1"></label>
+        <label>Altura (cm) <input id="altura" type="number" min="1"></label>
+        <label>Peso (kg) <input id="peso" type="number" min="1" step="0.1" onchange="calcularAgua()"></label>
+        <label>Pecho (cm) <input id="pecho" type="number" min="0" step="0.1"></label>
+        <label>Brazo (cm) <input id="brazo" type="number" min="0" step="0.1"></label>
+        <label>Cintura (cm) <input id="cintura" type="number" min="0" step="0.1"></label>
+        <label>Pierna (cm) <input id="pierna" type="number" min="0" step="0.1"></label>
+      </div>
+    </section>
+
+    <section id="aguaScreen" class="screen">
+      <h2>Meta de Agua</h2>
+      <p>Meta diaria: <strong><span id="metaAgua">0.00</span> L</strong></p>
+      <p>Consumido: <strong><span id="aguaActual">0.00</span> L</strong></p>
+      <div class="bottle-wrap" aria-label="Botella de agua con nivel actual">
+        <div class="bottle-cap"></div>
+        <div class="bottle">
+          <div id="bottleWater" class="bottle-water"></div>
+        </div>
+        <div class="bottle-label"><span id="bottlePercent">0</span>% completado</div>
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="agregarAgua(0.25)">💧 250 ml</button>
+        <button class="btn" onclick="agregarAgua(0.5)">💧💧 500 ml</button>
+        <button class="btn" onclick="agregarAgua(1)">💧💧💧 1000 ml</button>
+        <button class="btn secondary" onclick="resetAgua()">Reset diario</button>
+      </div>
+      <div class="progress-container"><div id="barraAgua" class="progress-bar"></div></div>
+      <div id="waterHistory" class="history-list">
+        <p class="history-title">Historial de agua (últimos 7 días)</p>
+      </div>
+    </section>
+
+    <section id="asistenciaScreen" class="screen">
+      <h2>Asistencia al gimnasio</h2>
+      <div class="actions">
+        <button class="btn secondary" onclick="resetSemanaGym()">Reset semanal</button>
+        <button class="btn secondary" onclick="resetEstadisticasSemanales()">Reset estadísticas semanales</button>
+      </div>
+      <label>Meta semanal de entreno (días)
+        <input id="metaEntrenoSemanal" type="number" min="1" max="7" step="1" value="4" onchange="actualizarMetaEntrenoSemanal()">
+      </label>
+      <div class="asistencia-anim">
+        <div id="gymCharacter" class="gym-character">🙂</div>
+        <div id="gymStatusText" class="gym-status-text">Marca tu asistencia de hoy</div>
+      </div>
+      <p id="gymEmoji" style="font-size:1.3rem; margin:8px 0;"></p>
+      <p>Días esta semana: <strong><span id="diasGym">0</span></strong></p>
+      <p class="tap-hint">Toca un día para alternar: pendiente → entreno → descanso.</p>
+      <div class="day-tools">
+        <label>Día seleccionado
+          <input id="diaSeleccionadoLabel" readonly>
+        </label>
+        <div class="quick-tags">
+          <button class="tag-btn" data-tag="Fuerza" onclick="toggleTagDia('Fuerza')">Fuerza</button>
+          <button class="tag-btn" data-tag="Hipertrofia" onclick="toggleTagDia('Hipertrofia')">Hipertrofia</button>
+          <button class="tag-btn" data-tag="Cardio" onclick="toggleTagDia('Cardio')">Cardio</button>
+          <button class="tag-btn" data-tag="Movilidad" onclick="toggleTagDia('Movilidad')">Movilidad</button>
+          <button class="tag-btn" data-tag="Descanso activo" onclick="toggleTagDia('Descanso activo')">Descanso activo</button>
+        </div>
+        <label>Notas del día
+          <textarea id="notaDiaInput" rows="3" placeholder="Ej: piernas pesadas, dormí 6h..." oninput="guardarNotaDia()"></textarea>
+        </label>
+        <div id="miniResumenSemana" class="mini-summary">Resumen semanal: sin datos.</div>
+      </div>
+      <div id="semanaVisual"></div>
+    </section>
+
+    <section id="gruposScreen" class="screen">
+      <h2>Series por Grupo Muscular</h2>
+      <div id="grupos"></div>
+    </section>
+
+    <section id="volumenScreen" class="screen">
+      <h2>Volumen Semanal</h2>
+      <div class="actions">
+        <button class="btn" onclick="calcularVolumen()">Calcular volumen</button>
+        <button class="btn secondary" onclick="calcularComparacionSemanal()">Comparar semanas</button>
+      </div>
+      <div id="graficaWrap"><canvas id="grafica"></canvas></div>
+      <div id="graficaWrap" style="margin-top:10px;"><canvas id="graficaAsistencia"></canvas></div>
+    </section>
+
+    <section id="cronometroScreen" class="screen">
+      <h2>Cronómetro</h2>
+
+      <div class="timer-card">
+        <h3 style="margin:0 0 6px;">Tiempo general</h3>
+        <div class="timer-compact">
+          <div id="gymTimerDisplay" class="timer-big">00:00:00</div>
+          <div class="actions">
+            <button id="gymPlayPauseBtn" class="btn icon-btn" onclick="iniciarPausarGymTimer()" aria-label="Iniciar tiempo general" title="Iniciar tiempo general">▶️</button>
+            <button class="btn secondary icon-btn" onclick="pausarGymTimer()" aria-label="Pausar tiempo general" title="Pausar tiempo general">⏸️</button>
+            <button class="btn secondary icon-btn" onclick="reiniciarYGuardarGymTimer()" aria-label="Reiniciar y guardar tiempo general" title="Reiniciar y guardar tiempo general">↺</button>
+          </div>
+          <div class="timer-inline-meta">Hoy acumulado: <span id="hoyGymTiempo">00:00:00</span></div>
+          <button class="btn secondary" onclick="activarModoNotificacionCronometro()">Activar vista en notificación</button>
+        </div>
+      </div>
+
+      <div class="timer-card">
+        <h3 style="margin:0 0 6px;">Descanso y series</h3>
+        <div id="restTimerDisplay" class="timer-big">00:00</div>
+        <div id="restTimerMessage" class="timer-msg">Aún no es tiempo, sigue descansando.</div>
+        <div class="actions">
+          <button class="btn icon-btn" onclick="iniciarPausarRestTimer()" aria-label="Iniciar o pausar descanso" title="Iniciar o pausar descanso">⏯️</button>
+          <button class="btn secondary icon-btn" onclick="reiniciarDescansoNuevaSerie()" aria-label="Nueva serie" title="Nueva serie">🔁</button>
+          <button class="btn secondary icon-btn" onclick="reiniciarConteoSeries()" aria-label="Reiniciar conteo de series" title="Reiniciar conteo de series">🧮</button>
+        </div>
+        <div class="timer-meta">Series contadas: <span id="restSeriesCount">0</span></div>
+      </div>
+
+      <div id="graficaWrap"><canvas id="graficaGymTiempo"></canvas></div>
+    </section>
+
+  </main>
+  <button id="quickWaterFab" class="quick-water-fab" onclick="agregarAguaRapida()">+250ml 💧</button>
+  <button id="quickGymYesFab" class="quick-gym-fab" onclick="registrarGym(true)" aria-label="Fui al gym hoy" title="Fui al gym hoy">🏋️</button>
+  <button id="quickGymNoFab" class="quick-gym-fab" onclick="registrarGym(false)" aria-label="Hoy descanso" title="Hoy descanso">🛏️</button>
+  <button id="homeFab" class="home-fab hidden-fab" onclick="showScreen('homeScreen')">🏠</button>
+  <div id="toast" class="toast">Guardado ✅</div>
+
+  <script>
+    const camposPersonales = ["nombre", "sexo", "edad", "altura", "peso", "pecho", "brazo", "cintura", "pierna"];
+    const diasOrden = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+    let aguaActual = 0;
+    let diasGym = 0;
+    let semana = {
+      "Lunes": null,
+      "Martes": null,
+      "Miércoles": null,
+      "Jueves": null,
+      "Viernes": null,
+      "Sábado": null,
+      "Domingo": null
+    };
+
+    const estructura = {
+      "Upper Body": {
+        "Pecho": [10, 20], "Espalda": [12, 22], "Deltoide anterior": [6, 12], "Deltoide lateral": [8, 15],
+        "Deltoide posterior": [8, 15], "Bíceps": [8, 15], "Tríceps": [8, 15], "Antebrazo": [6, 12]
+      },
+      "Lower Body": {
+        "Cuádriceps": [10, 20], "Isquiotibiales": [8, 15], "Glúteos": [8, 15], "Pantorrillas": [10, 20], "Aductores": [6, 12]
+      },
+      "Core": {
+        "Recto abdominal": [6, 15], "Oblicuos": [6, 15], "Erectores espinales": [6, 12]
+      }
+    };
+
+    let datosSeries = {};
+    let chart;
+    let chartAsistencia;
+    let historialAgua = {};
+    let historialAsistencia = {};
+    let metaEntrenoSemanal = 4;
+    let diaSeleccionado = "Lunes";
+    let detalleSemana = {};
+    let gymTimerSeconds = 0;
+    let gymTimerRunning = false;
+    let gymTimerInterval = null;
+    let gymTimerStartedAt = null;
+
+    let gymTimeWeek = {};
+    let chartGymTiempo;
+
+    let restTimerSeconds = 0;
+    let restTimerRunning = false;
+    let restTimerInterval = null;
+    let restTimerStartedAt = null;
+    let restSeriesCount = 0;
+    let timerNotificationEnabled = false;
+    let lastTimerNotificationAt = 0;
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active'));
+      const target = document.getElementById(screenId);
+      if (target) target.classList.add('active');
+
+      const quickWaterFab = document.getElementById('quickWaterFab');
+      const quickGymYesFab = document.getElementById('quickGymYesFab');
+      const quickGymNoFab = document.getElementById('quickGymNoFab');
+      const homeFab = document.getElementById('homeFab');
+      const isHome = screenId === 'homeScreen';
+      if (quickWaterFab) quickWaterFab.classList.toggle('hidden-fab', !isHome);
+      if (quickGymYesFab) quickGymYesFab.classList.toggle('hidden-fab', !isHome);
+      if (quickGymNoFab) quickGymNoFab.classList.toggle('hidden-fab', !isHome);
+      if (homeFab) homeFab.classList.toggle('hidden-fab', isHome);
+
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+
+
+    function getDateKey(date = new Date()) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function getWeekKey(date = new Date()) {
+      const day = date.getDay();
+      const diffToMonday = day === 0 ? -6 : 1 - day;
+      const monday = new Date(date);
+      monday.setDate(date.getDate() + diffToMonday);
+      return getDateKey(monday);
+    }
+
+    function guardarSemanaEnHistorial() {
+      historialAsistencia[getWeekKey()] = { ...semana };
+    }
+
+
+    function inicializarDetalleSemana() {
+      for (const dia of diasOrden) {
+        if (!detalleSemana[dia]) detalleSemana[dia] = { nota: "", tags: [] };
+      }
+    }
+
+    function mostrarToast(msg = "Guardado ✅") {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.classList.add("show");
+      clearTimeout(mostrarToast._t);
+      mostrarToast._t = setTimeout(() => toast.classList.remove("show"), 1200);
+    }
+
+    function agregarAguaRapida() {
+      agregarAgua(0.25);
+    }
+
+    function actualizarFooterHomeSemana() {
+      const week = document.getElementById("homeWeekDays");
+      const todayText = document.getElementById("homeTodayText");
+      const avatar = document.getElementById("homeAvatar");
+      const avatarText = document.getElementById("homeAvatarText");
+      if (!week || !todayText || !avatar || !avatarText) return;
+
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const hoyNombre = diasMap[hoy.getDay()];
+      todayText.innerText = `Hoy es ${hoyNombre}`;
+
+      week.innerHTML = diasOrden.map((dia) => {
+        const estado = semana[dia];
+        const mark = estado === true ? "🏋️" : (estado === false ? "🛌" : "⏳");
+        const cls = dia === hoyNombre ? "today" : "";
+        return `<div class="${cls}">${dia.slice(0,3)}<br>${mark}</div>`;
+      }).join("");
+
+      const entreno = Object.values(semana).filter(v => v === true).length;
+      if (entreno <= 0) {
+        avatar.innerText = "🥱";
+        avatarText.innerText = "Sin entrenos aún: el personaje está débil y cansado.";
+      } else if (entreno <= 2) {
+        avatar.innerText = "😓";
+        avatarText.innerText = "Ya empezaste, sigue construyendo fuerza.";
+      } else if (entreno <= 4) {
+        avatar.innerText = "💪";
+        avatarText.innerText = "Buen progreso: te estás volviendo más fuerte.";
+      } else {
+        avatar.innerText = "🦍";
+        avatarText.innerText = "Modo bestia activado esta semana.";
+      }
+    }
+
+    function seleccionarDia(dia) {
+      diaSeleccionado = dia;
+      const input = document.getElementById("diaSeleccionadoLabel");
+      const nota = document.getElementById("notaDiaInput");
+      if (input) input.value = diaSeleccionado;
+      if (nota) nota.value = detalleSemana[diaSeleccionado]?.nota || "";
+
+      document.querySelectorAll('.tag-btn').forEach((b) => {
+        const tag = b.getAttribute('data-tag');
+        b.classList.toggle('active', (detalleSemana[diaSeleccionado]?.tags || []).includes(tag));
+      });
+
+      document.querySelectorAll('#semanaVisual .dia').forEach((el) => {
+        const nombre = (el.querySelector('strong')?.innerText || '').trim();
+        el.classList.toggle('selected', nombre === diaSeleccionado);
+      });
+    }
+
+    function toggleTagDia(tag) {
+      inicializarDetalleSemana();
+      const tags = detalleSemana[diaSeleccionado].tags;
+      const idx = tags.indexOf(tag);
+      if (idx >= 0) tags.splice(idx, 1);
+      else tags.push(tag);
+      seleccionarDia(diaSeleccionado);
+      renderMiniResumenSemana();
+      guardarTodo();
+      mostrarToast("Etiqueta guardada ✅");
+    }
+
+    function guardarNotaDia() {
+      inicializarDetalleSemana();
+      const nota = document.getElementById("notaDiaInput")?.value || "";
+      detalleSemana[diaSeleccionado].nota = nota;
+      renderMiniResumenSemana();
+      guardarTodo();
+    }
+
+    function renderMiniResumenSemana() {
+      inicializarDetalleSemana();
+      const res = document.getElementById("miniResumenSemana");
+      if (!res) return;
+      const countNotas = diasOrden.filter((d) => (detalleSemana[d]?.nota || "").trim().length > 0).length;
+      const tagsCount = {};
+      for (const dia of diasOrden) {
+        for (const t of (detalleSemana[dia]?.tags || [])) {
+          tagsCount[t] = (tagsCount[t] || 0) + 1;
+        }
+      }
+      const top = Object.entries(tagsCount).sort((a,b)=>b[1]-a[1]).slice(0,3)
+        .map(([t,n])=>`${t} (${n})`).join(", ") || "sin etiquetas";
+      res.innerText = `Resumen semanal: ${countNotas} días con notas · Etiquetas top: ${top}.`;
+    }
+
+    function renderWaterHistory() {
+      const cont = document.getElementById("waterHistory");
+      if (!cont) return;
+
+      const items = Object.entries(historialAgua)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 7);
+
+      let html = '<p class="history-title">Historial de agua (últimos 7 días)</p>';
+      if (items.length === 0) {
+        html += '<div class="history-item"><span>Sin registros</span><span>—</span></div>';
+      } else {
+        for (const [fecha, litros] of items) {
+          html += `<div class="history-item"><span>${fecha}</span><span>${Number(litros).toFixed(2)} L</span></div>`;
+        }
+      }
+      cont.innerHTML = html;
+      actualizarPromedioAguaHome();
+    }
+
+    function actualizarHistorialAguaHoy() {
+      historialAgua[getDateKey()] = Number(aguaActual.toFixed(2));
+    }
+
+    function calcularPromedioAgua7Dias() {
+      const items = Object.entries(historialAgua)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .slice(0, 7)
+        .map(([, litros]) => Number(litros) || 0);
+
+      if (items.length === 0) return 0;
+      return items.reduce((acc, n) => acc + n, 0) / items.length;
+    }
+
+    function actualizarPromedioAguaHome() {
+      const avgEl = document.getElementById("homeWaterAvg");
+      if (!avgEl) return;
+      avgEl.innerText = `Promedio 7 días: ${calcularPromedioAgua7Dias().toFixed(2)} L`;
+    }
+
+    function actualizarMetaEntrenoSemanal() {
+      const input = document.getElementById("metaEntrenoSemanal");
+      const value = Math.min(7, Math.max(1, Number.parseInt(input?.value || "4", 10) || 4));
+      metaEntrenoSemanal = value;
+      if (input) input.value = String(value);
+      localStorage.setItem("metaEntrenoSemanal", String(metaEntrenoSemanal));
+      localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
+      localStorage.setItem("gymTimeWeek", JSON.stringify(gymTimeWeek));
+      localStorage.setItem("restSeriesCount", String(restSeriesCount));
+      localStorage.setItem("gymTimerStartedAt", gymTimerStartedAt ? String(gymTimerStartedAt) : "");
+      localStorage.setItem("restTimerStartedAt", restTimerStartedAt ? String(restTimerStartedAt) : "");
+      localStorage.setItem("timerNotificationEnabled", timerNotificationEnabled ? "1" : "0");
+      localStorage.setItem("gymTimerSeconds", String(gymTimerSeconds));
+      localStorage.setItem("gymTimerRunning", gymTimerRunning ? "1" : "0");
+      actualizarAsistenciaHome();
+      actualizarFooterHomeSemana();
+    }
+
+    function actualizarSaludoHome() {
+      const nombre = (document.getElementById("nombre")?.value || "").trim();
+      const saludo = document.getElementById("homeGreeting");
+      if (!saludo) return;
+      saludo.innerText = nombre
+        ? `Hola ${nombre} 👋, ¡vamos por tus objetivos!`
+        : "Hola 👋, completa tu nombre.";
+    }
+
+    function actualizarAsistenciaHome() {
+      const entreno = Object.values(semana).filter(v => v === true).length;
+      const descanso = Object.values(semana).filter(v => v === false).length;
+      const total = 7;
+
+      const trainBar = document.getElementById("homeTrainBar");
+      const restBar = document.getElementById("homeRestBar");
+      const goalBar = document.getElementById("homeGoalBar");
+      const txt = document.getElementById("homeAssistText");
+
+      if (trainBar) trainBar.style.width = `${(entreno / total) * 100}%`;
+      if (restBar) restBar.style.width = `${(descanso / total) * 100}%`;
+      if (goalBar) goalBar.style.width = `${Math.min((entreno / metaEntrenoSemanal) * 100, 100)}%`;
+      if (txt) txt.innerText = `Entreno ${entreno}/${metaEntrenoSemanal} meta · Descanso ${descanso}/${total}`;
+      actualizarFooterHomeSemana();
+    }
+    function guardarTodo() {
+      localStorage.setItem("aguaActual", String(aguaActual));
+      localStorage.setItem("semana", JSON.stringify(semana));
+      localStorage.setItem("datosSeries", JSON.stringify(datosSeries));
+      localStorage.setItem("metaAgua", document.getElementById("metaAgua").innerText);
+
+      const datosPersonales = {};
+      for (const id of camposPersonales) {
+        const el = document.getElementById(id);
+        datosPersonales[id] = el ? el.value : "";
+      }
+      localStorage.setItem("datosPersonales", JSON.stringify(datosPersonales));
+      localStorage.setItem("historialAgua", JSON.stringify(historialAgua));
+      localStorage.setItem("historialAsistencia", JSON.stringify(historialAsistencia));
+      localStorage.setItem("metaEntrenoSemanal", String(metaEntrenoSemanal));
+      localStorage.setItem("detalleSemana", JSON.stringify(detalleSemana));
+      localStorage.setItem("gymTimeWeek", JSON.stringify(gymTimeWeek));
+      localStorage.setItem("restSeriesCount", String(restSeriesCount));
+      localStorage.setItem("gymTimerStartedAt", gymTimerStartedAt ? String(gymTimerStartedAt) : "");
+      localStorage.setItem("restTimerStartedAt", restTimerStartedAt ? String(restTimerStartedAt) : "");
+      localStorage.setItem("timerNotificationEnabled", timerNotificationEnabled ? "1" : "0");
+      localStorage.setItem("gymTimerSeconds", String(gymTimerSeconds));
+      localStorage.setItem("gymTimerRunning", gymTimerRunning ? "1" : "0");
+    }
+
+    function cargarTodo() {
+      const aguaGuardada = localStorage.getItem("aguaActual");
+      const semanaGuardada = localStorage.getItem("semana");
+      const seriesGuardadas = localStorage.getItem("datosSeries");
+      const metaGuardada = localStorage.getItem("metaAgua");
+      const datosPersonales = localStorage.getItem("datosPersonales");
+      const historialAguaGuardado = localStorage.getItem("historialAgua");
+      const historialAsistenciaGuardado = localStorage.getItem("historialAsistencia");
+      const metaEntrenoGuardada = localStorage.getItem("metaEntrenoSemanal");
+      const detalleSemanaGuardado = localStorage.getItem("detalleSemana");
+      const gymTimeWeekGuardado = localStorage.getItem("gymTimeWeek");
+      const restSeriesCountGuardado = localStorage.getItem("restSeriesCount");
+      const gymTimerStartedAtGuardado = localStorage.getItem("gymTimerStartedAt");
+      const restTimerStartedAtGuardado = localStorage.getItem("restTimerStartedAt");
+      const timerNotificationEnabledGuardado = localStorage.getItem("timerNotificationEnabled");
+      const gymTimerSecondsGuardado = localStorage.getItem("gymTimerSeconds");
+      const gymTimerRunningGuardado = localStorage.getItem("gymTimerRunning");
+
+      if (aguaGuardada !== null) {
+        aguaActual = Number.parseFloat(aguaGuardada) || 0;
+        document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+      }
+
+      if (semanaGuardada) semana = JSON.parse(semanaGuardada);
+      if (seriesGuardadas) datosSeries = JSON.parse(seriesGuardadas);
+
+      if (metaGuardada) {
+        document.getElementById("metaAgua").innerText = (Number.parseFloat(metaGuardada) || 0).toFixed(2);
+      }
+
+      if (historialAguaGuardado) historialAgua = JSON.parse(historialAguaGuardado);
+      if (historialAsistenciaGuardado) historialAsistencia = JSON.parse(historialAsistenciaGuardado);
+      if (metaEntrenoGuardada) {
+        metaEntrenoSemanal = Math.min(7, Math.max(1, Number.parseInt(metaEntrenoGuardada, 10) || 4));
+      }
+      const metaInput = document.getElementById("metaEntrenoSemanal");
+      if (metaInput) metaInput.value = String(metaEntrenoSemanal);
+      if (detalleSemanaGuardado) detalleSemana = JSON.parse(detalleSemanaGuardado);
+      if (gymTimeWeekGuardado) gymTimeWeek = JSON.parse(gymTimeWeekGuardado);
+      if (restSeriesCountGuardado) restSeriesCount = Number.parseInt(restSeriesCountGuardado, 10) || 0;
+      gymTimerStartedAt = gymTimerStartedAtGuardado ? Number.parseInt(gymTimerStartedAtGuardado, 10) : null;
+      restTimerStartedAt = restTimerStartedAtGuardado ? Number.parseInt(restTimerStartedAtGuardado, 10) : null;
+      timerNotificationEnabled = timerNotificationEnabledGuardado === "1";
+      if (gymTimerSecondsGuardado !== null) gymTimerSeconds = Number.parseInt(gymTimerSecondsGuardado, 10) || 0;
+      gymTimerRunning = gymTimerRunningGuardado === "1";
+      if (gymTimerRunning && !gymTimerStartedAt) gymTimerRunning = false;
+      inicializarDetalleSemana();
+
+      if (datosPersonales) {
+        const parsed = JSON.parse(datosPersonales);
+        for (const id of camposPersonales) {
+          if (document.getElementById(id) && parsed[id] !== undefined) {
+            document.getElementById(id).value = parsed[id];
+          }
+        }
+      }
+
+      diasGym = Object.values(semana).filter(v => v === true).length;
+      document.getElementById("diasGym").innerText = String(diasGym);
+
+      renderSemana();
+      renderSeries();
+      actualizarBarraAgua();
+      actualizarAnimacionGymDelDia();
+      actualizarSaludoHome();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      actualizarHistorialAguaHoy();
+      renderWaterHistory();
+      renderMiniResumenSemana();
+      seleccionarDia(diaSeleccionado);
+      actualizarFooterHomeSemana();
+    }
+
+    function calcularAgua() {
+      const peso = Number.parseFloat(document.getElementById("peso").value);
+      const meta = peso > 0 ? peso * 0.035 : 0;
+      document.getElementById("metaAgua").innerText = meta.toFixed(2);
+      actualizarBarraAgua();
+      guardarTodo();
+    }
+
+    function actualizarBarraAgua() {
+      const meta = Number.parseFloat(document.getElementById("metaAgua").innerText) || 0;
+      const barra = document.getElementById("barraAgua");
+      const bottleWater = document.getElementById("bottleWater");
+      const bottlePercent = document.getElementById("bottlePercent");
+      const homeWaterProgressBar = document.getElementById("homeWaterProgressBar");
+      const homeWaterMessage = document.getElementById("homeWaterMessage");
+
+      if (meta <= 0) {
+        barra.style.width = "0%";
+        barra.style.background = "var(--primary)";
+        if (bottleWater) bottleWater.style.height = "0%";
+        if (bottlePercent) bottlePercent.innerText = "0";
+        if (homeWaterProgressBar) homeWaterProgressBar.style.width = "0%";
+        if (homeWaterMessage) homeWaterMessage.innerText = "Configura tu peso para calcular tu meta.";
+        return;
+      }
+
+      const porcentaje = Math.min((aguaActual / meta) * 100, 100);
+      const faltante = Math.max(meta - aguaActual, 0);
+
+      barra.style.width = `${porcentaje}%`;
+      barra.style.background = porcentaje >= 100 ? "var(--success)" : "var(--primary)";
+      if (bottleWater) bottleWater.style.height = `${porcentaje}%`;
+      if (bottlePercent) bottlePercent.innerText = `${Math.round(porcentaje)}`;
+      if (homeWaterProgressBar) homeWaterProgressBar.style.width = `${porcentaje}%`;
+      if (homeWaterMessage) {
+        homeWaterMessage.innerText = faltante > 0
+          ? `Te faltan ${faltante.toFixed(2)} L para tu meta diaria.`
+          : "¡Meta diaria de agua completada!";
+      }
+      renderWaterHistory();
+    }
+
+    function agregarAgua(cantidad) {
+      aguaActual += cantidad;
+      actualizarHistorialAguaHoy();
+      document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+      actualizarBarraAgua();
+      guardarTodo();
+      mostrarToast("Agua guardada ✅");
+    }
+
+    function resetAgua() {
+      aguaActual = 0;
+      actualizarHistorialAguaHoy();
+      document.getElementById("aguaActual").innerText = aguaActual.toFixed(2);
+      actualizarBarraAgua();
+      guardarTodo();
+      mostrarToast("Agua reiniciada ✅");
+    }
+
+    function registrarGym(fui) {
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const nombreDia = diasMap[hoy.getDay()];
+
+      semana[nombreDia] = fui;
+      document.getElementById("gymEmoji").innerText = fui ? "💪" : "🛏️";
+      actualizarAnimacionGym(fui);
+      diasGym = Object.values(semana).filter(v => v === true).length;
+      document.getElementById("diasGym").innerText = String(diasGym);
+      renderSemana();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      guardarTodo();
+      mostrarToast("Asistencia guardada ✅");
+    }
+
+
+    function actualizarAnimacionGym(fui) {
+      const gymCharacter = document.getElementById("gymCharacter");
+      const gymStatusText = document.getElementById("gymStatusText");
+      if (!gymCharacter || !gymStatusText) return;
+
+      gymCharacter.classList.remove("workout", "rest");
+      if (fui === true) {
+        gymCharacter.innerText = "🏃";
+        gymCharacter.classList.add("workout");
+        gymStatusText.innerText = "¡Excelente! Hoy toca entrenar.";
+      } else if (fui === false) {
+        gymCharacter.innerText = "🛌";
+        gymCharacter.classList.add("rest");
+        gymStatusText.innerText = "Hoy toca descanso y recuperación.";
+      } else {
+        gymCharacter.innerText = "🙂";
+        gymStatusText.innerText = "Marca tu asistencia de hoy";
+      }
+    }
+
+    function actualizarAnimacionGymDelDia() {
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const nombreDia = diasMap[hoy.getDay()];
+      actualizarAnimacionGym(semana[nombreDia]);
+    }
+
+    function resetSemanaGym() {
+      for (const dia in semana) semana[dia] = null;
+      diasGym = 0;
+      document.getElementById("diasGym").innerText = "0";
+      document.getElementById("gymEmoji").innerText = "";
+      actualizarAnimacionGym(null);
+      renderSemana();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      guardarTodo();
+      mostrarToast("Semana reiniciada ✅");
+    }
+
+
+    function resetEstadisticasSemanales() {
+      for (const dia in semana) semana[dia] = null;
+      diasGym = 0;
+      restSeriesCount = 0;
+      restTimerSeconds = 0;
+      restTimerRunning = false;
+      restTimerStartedAt = null;
+      if (restTimerInterval) {
+        clearInterval(restTimerInterval);
+        restTimerInterval = null;
+      }
+
+      gymTimerSeconds = 0;
+      gymTimerRunning = false;
+      gymTimerStartedAt = null;
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+
+      for (const dia of diasOrden) {
+        gymTimeWeek[dia] = 0;
+      }
+
+      for (const musculo in datosSeries) {
+        datosSeries[musculo] = 0;
+      }
+
+      const diasGymEl = document.getElementById("diasGym");
+      if (diasGymEl) diasGymEl.innerText = "0";
+      const gymEmoji = document.getElementById("gymEmoji");
+      if (gymEmoji) gymEmoji.innerText = "";
+
+      actualizarAnimacionGym(null);
+      renderSemana();
+      renderSeries();
+      renderGymTimerUI();
+      renderRestTimerUI();
+      calcularGraficaTiempoGym();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      guardarTodo();
+      enviarEstadoCronometroASW(true);
+      mostrarToast("Estadísticas semanales reiniciadas ✅");
+    }
+
+    function renderSemana() {
+      const contenedor = document.getElementById("semanaVisual");
+      contenedor.innerHTML = "";
+      const hoy = new Date();
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoyNombre = diasMap[hoy.getDay()];
+
+      for (const dia of diasOrden) {
+        const estado = semana[dia];
+        let emoji = "⏳";
+        if (estado === true) emoji = "🏋️";
+        if (estado === false) emoji = "🛌";
+
+        const item = document.createElement("div");
+        item.className = "dia";
+        if (estado === true) item.classList.add("day-yes");
+        if (estado === false) item.classList.add("day-no");
+        if (dia === hoyNombre) item.classList.add("day-today");
+
+        item.innerHTML = `<strong>${dia}</strong><br>${emoji}`;
+        item.onclick = () => {
+          alternarDiaSemana(dia);
+          seleccionarDia(dia);
+        };
+        contenedor.appendChild(item);
+      }
+      actualizarAsistenciaHome();
+    }
+
+
+
+    function alternarDiaSemana(dia) {
+      const actual = semana[dia];
+      const nuevo = actual === null ? true : (actual === true ? false : null);
+      semana[dia] = nuevo;
+
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      const hoy = new Date();
+      const hoyNombre = diasMap[hoy.getDay()];
+      if (dia === hoyNombre) {
+        document.getElementById("gymEmoji").innerText = nuevo === true ? "💪" : (nuevo === false ? "🛏️" : "");
+        actualizarAnimacionGym(nuevo);
+      }
+
+      diasGym = Object.values(semana).filter(v => v === true).length;
+      document.getElementById("diasGym").innerText = String(diasGym);
+      renderSemana();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      guardarTodo();
+      mostrarToast("Día actualizado ✅");
+    }
+
+    function inicializarSeries() {
+      for (const categoria in estructura) {
+        for (const musculo in estructura[categoria]) {
+          if (typeof datosSeries[musculo] !== "number") datosSeries[musculo] = 0;
+        }
+      }
+    }
+
+    function colorPorRango(valor, min, max) {
+      if (valor < min) return "var(--danger)";
+      if (valor < (min + max) / 2) return "var(--warning)";
+      return "var(--success)";
+    }
+
+    function renderSeries() {
+      inicializarSeries();
+      const contenedor = document.getElementById("grupos");
+      contenedor.innerHTML = "";
+
+      for (const categoria in estructura) {
+        const wrap = document.createElement("div");
+        wrap.className = "category";
+
+        const toggle = document.createElement("button");
+        toggle.className = "btn";
+        toggle.style.width = "100%";
+        toggle.innerText = categoria;
+
+        const body = document.createElement("div");
+        body.classList.add("hidden");
+
+        toggle.onclick = () => body.classList.toggle("hidden");
+
+        for (const musculo in estructura[categoria]) {
+          const [min, max] = estructura[categoria][musculo];
+          const actual = datosSeries[musculo] || 0;
+          const progreso = Math.min((actual / max) * 100, 100);
+
+          const card = document.createElement("div");
+          card.className = "muscle-card";
+          card.innerHTML = `
+            <div class="muscle-title">
+              <strong>${musculo}</strong>
+              <span id="valor-${musculo}">${actual}</span>
+            </div>
+            <div class="muted">Meta sugerida: ${min}-${max} series</div>
+            <div class="actions">
+              <button class="btn" onclick="sumarSerie('${musculo}', ${min}, ${max})">+1 serie</button>
+              <button class="btn secondary" onclick="restarSerie('${musculo}', ${min}, ${max})">-1 serie</button>
+            </div>
+            <div class="progress-container">
+              <div id="barra-${musculo}" class="progress-bar" style="width:${progreso}%; background:${colorPorRango(actual, min, max)}"></div>
+            </div>
+          `;
+
+          body.appendChild(card);
+        }
+
+        wrap.appendChild(toggle);
+        wrap.appendChild(body);
+        contenedor.appendChild(wrap);
+      }
+    }
+
+    function actualizarSerieUI(musculo, min, max) {
+      const valor = datosSeries[musculo] || 0;
+      const progress = Math.min((valor / max) * 100, 100);
+      const label = document.getElementById(`valor-${musculo}`);
+      const bar = document.getElementById(`barra-${musculo}`);
+      if (label) label.innerText = String(valor);
+      if (bar) {
+        bar.style.width = `${progress}%`;
+        bar.style.background = colorPorRango(valor, min, max);
+      }
+    }
+
+    function sumarSerie(musculo, min, max) {
+      datosSeries[musculo] = (datosSeries[musculo] || 0) + 1;
+      actualizarSerieUI(musculo, min, max);
+      guardarTodo();
+    }
+
+    function restarSerie(musculo, min, max) {
+      datosSeries[musculo] = Math.max((datosSeries[musculo] || 0) - 1, 0);
+      actualizarSerieUI(musculo, min, max);
+      guardarTodo();
+    }
+
+    function calcularVolumen() {
+      const labels = [];
+      const data = [];
+
+      for (const musculo in datosSeries) {
+        labels.push(musculo);
+        data.push(datosSeries[musculo]);
+      }
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(document.getElementById("grafica"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Series Totales",
+            data,
+            backgroundColor: "rgba(37,99,235,0.7)",
+            borderColor: "rgba(37,99,235,1)",
+            borderWidth: 1,
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+
+    function calcularComparacionSemanal() {
+      const semanaActualKey = getWeekKey();
+      const monday = new Date(semanaActualKey + "T00:00:00");
+      const prevMonday = new Date(monday);
+      prevMonday.setDate(monday.getDate() - 7);
+      const semanaAnteriorKey = getWeekKey(prevMonday);
+
+      const actual = historialAsistencia[semanaActualKey] || semana;
+      const anterior = historialAsistencia[semanaAnteriorKey] || {};
+
+      const entrenoActual = Object.values(actual).filter(v => v === true).length;
+      const descansoActual = Object.values(actual).filter(v => v === false).length;
+      const entrenoAnterior = Object.values(anterior).filter(v => v === true).length;
+      const descansoAnterior = Object.values(anterior).filter(v => v === false).length;
+
+      if (chartAsistencia) chartAsistencia.destroy();
+
+      chartAsistencia = new Chart(document.getElementById("graficaAsistencia"), {
+        type: "bar",
+        data: {
+          labels: ["Entreno", "Descanso"],
+          datasets: [
+            {
+              label: "Semana actual",
+              data: [entrenoActual, descansoActual],
+              backgroundColor: "rgba(37,99,235,0.75)",
+              borderRadius: 6
+            },
+            {
+              label: "Semana anterior",
+              data: [entrenoAnterior, descansoAnterior],
+              backgroundColor: "rgba(100,116,139,0.75)",
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true, max: 7 } },
+          plugins: { legend: { display: true } }
+        }
+      });
+    }
+
+
+    function formatHMS(totalSeconds) {
+      const sec = Math.max(0, Number(totalSeconds) || 0);
+      const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function formatMS(totalSeconds) {
+      const sec = Math.max(0, Number(totalSeconds) || 0);
+      const m = String(Math.floor(sec / 60)).padStart(2, "0");
+      const s = String(sec % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function getTodayName() {
+      const diasMap = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+      return diasMap[new Date().getDay()];
+    }
+
+    function getGymElapsedSeconds() {
+      if (!gymTimerRunning || !gymTimerStartedAt) return gymTimerSeconds;
+      return gymTimerSeconds + Math.max(0, Math.floor((Date.now() - gymTimerStartedAt) / 1000));
+    }
+
+    function getRestElapsedSeconds() {
+      if (!restTimerRunning || !restTimerStartedAt) return restTimerSeconds;
+      return restTimerSeconds + Math.max(0, Math.floor((Date.now() - restTimerStartedAt) / 1000));
+    }
+
+    function getCurrentTimerState() {
+      return {
+        gymSeconds: getGymElapsedSeconds(),
+        restSeconds: getRestElapsedSeconds(),
+        seriesCount: restSeriesCount,
+        gymRunning: gymTimerRunning,
+        restRunning: restTimerRunning,
+        notificationsEnabled: timerNotificationEnabled
+      };
+    }
+
+    async function enviarEstadoCronometroASW(force = false) {
+      const now = Date.now();
+      if (!force && now - lastTimerNotificationAt < 1000) return;
+      lastTimerNotificationAt = now;
+      if (!navigator.serviceWorker?.controller) return;
+      navigator.serviceWorker.controller.postMessage({
+        type: "TIMER_STATE_UPDATE",
+        payload: getCurrentTimerState()
+      });
+    }
+
+    function renderGymTimerUI() {
+      const d = document.getElementById("gymTimerDisplay");
+      if (d) d.innerText = formatHMS(getGymElapsedSeconds());
+      const hoy = getTodayName();
+      const hoyEl = document.getElementById("hoyGymTiempo");
+      const acumuladoHoy = (gymTimeWeek[hoy] || 0) + getGymElapsedSeconds();
+      if (hoyEl) hoyEl.innerText = formatHMS(acumuladoHoy);
+      const playPause = document.getElementById("gymPlayPauseBtn");
+      if (playPause) playPause.innerText = gymTimerRunning ? "⏸️" : "▶️";
+    }
+
+    async function activarModoNotificacionCronometro() {
+      if (!("Notification" in window)) {
+        mostrarToast("Notificaciones no soportadas");
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          mostrarToast("Permiso denegado para notificaciones");
+          return;
+        }
+      }
+      timerNotificationEnabled = true;
+      guardarTodo();
+      await enviarEstadoCronometroASW(true);
+      mostrarToast("Notificación de cronómetro activada 🔔");
+    }
+
+    function iniciarPausarGymTimer() {
+      if (gymTimerRunning) {
+        return pausarGymTimer();
+      }
+      gymTimerRunning = true;
+      gymTimerStartedAt = Date.now();
+      if (gymTimerInterval) clearInterval(gymTimerInterval);
+      gymTimerInterval = setInterval(() => {
+        renderGymTimerUI();
+        enviarEstadoCronometroASW();
+        guardarTodo();
+      }, 1000);
+
+      renderGymTimerUI();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
+    }
+
+    function pausarGymTimer() {
+      if (!gymTimerRunning) return;
+      gymTimerSeconds = getGymElapsedSeconds();
+      gymTimerRunning = false;
+      gymTimerStartedAt = null;
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+      renderGymTimerUI();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
+    }
+
+    function reiniciarYGuardarGymTimer() {
+      const hoy = getTodayName();
+      const sessionSeconds = getGymElapsedSeconds();
+      if (sessionSeconds > 0) {
+        gymTimeWeek[hoy] = (gymTimeWeek[hoy] || 0) + sessionSeconds;
+      }
+      gymTimerSeconds = 0;
+      gymTimerRunning = false;
+      gymTimerStartedAt = null;
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+      renderGymTimerUI();
+      calcularGraficaTiempoGym();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
+      mostrarToast("Tiempo general guardado y reiniciado ✅");
+    }
+
+    function renderRestTimerUI() {
+      const d = document.getElementById("restTimerDisplay");
+      if (d) d.innerText = formatMS(getRestElapsedSeconds());
+      const s = document.getElementById("restSeriesCount");
+      if (s) s.innerText = String(restSeriesCount);
+
+      const msg = document.getElementById("restTimerMessage");
+      if (!msg) return;
+      const currentRestSeconds = getRestElapsedSeconds();
+      if (currentRestSeconds < 150) {
+        msg.innerText = "Aún no es tiempo, sigue descansando.";
+      } else if (currentRestSeconds <= 270) {
+        msg.innerText = "Todo listo, empieza tu serie.";
+      } else {
+        msg.innerText = "Oye, te estás enfriando, haz tu serie.";
+      }
+    }
+
+    function iniciarPausarRestTimer() {
+      if (restTimerRunning) {
+        restTimerSeconds = getRestElapsedSeconds();
+        restTimerRunning = false;
+        restTimerStartedAt = null;
+        if (restTimerInterval) {
+          clearInterval(restTimerInterval);
+          restTimerInterval = null;
+        }
+      } else {
+        restTimerRunning = true;
+        restTimerStartedAt = Date.now();
+        restTimerInterval = setInterval(() => {
+          renderRestTimerUI();
+          enviarEstadoCronometroASW();
+          guardarTodo();
+        }, 1000);
+      }
+      renderRestTimerUI();
+      enviarEstadoCronometroASW(true);
+      guardarTodo();
+    }
+
+    function reiniciarDescansoNuevaSerie() {
+      restSeriesCount += 1;
+      restTimerSeconds = 0;
+      restTimerStartedAt = Date.now();
+      renderRestTimerUI();
+      if (!restTimerRunning) {
+        restTimerRunning = true;
+        restTimerInterval = setInterval(() => {
+          renderRestTimerUI();
+          enviarEstadoCronometroASW();
+          guardarTodo();
+        }, 1000);
+      }
+      guardarTodo();
+      enviarEstadoCronometroASW(true);
+      mostrarToast("Nueva serie contada ✅");
+    }
+
+    function reiniciarConteoSeries() {
+      restSeriesCount = 0;
+      guardarTodo();
+      renderRestTimerUI();
+      enviarEstadoCronometroASW(true);
+      mostrarToast("Conteo de series reiniciado ↺");
+    }
+
+    function calcularGraficaTiempoGym() {
+      const data = diasOrden.map((dia) => Number(((gymTimeWeek[dia] || 0) / 60).toFixed(1)));
+      if (chartGymTiempo) chartGymTiempo.destroy();
+      chartGymTiempo = new Chart(document.getElementById("graficaGymTiempo"), {
+        type: "bar",
+        data: {
+          labels: diasOrden,
+          datasets: [{
+            label: "Minutos en gimnasio",
+            data,
+            backgroundColor: "rgba(22,163,74,0.75)",
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { beginAtZero: true } },
+          plugins: { legend: { display: true } }
+        }
+      });
+    }
+
+    document.addEventListener("input", (e) => {
+      if (camposPersonales.includes(e.target.id)) {
+        guardarTodo();
+        if (e.target.id === "nombre") actualizarSaludoHome();
+      }
+    });
+
+    window.onload = async () => {
+      renderSeries();
+      cargarTodo();
+      showScreen('homeScreen');
+      calcularComparacionSemanal();
+
+      if ("serviceWorker" in navigator) {
+        try {
+          await navigator.serviceWorker.register("/sw.js");
+          await navigator.serviceWorker.ready;
+          navigator.serviceWorker.addEventListener("message", (event) => {
+            if (event.data?.type === "SW_ADD_SERIES") {
+              reiniciarDescansoNuevaSerie();
+            }
+            if (event.data?.type === "SW_RESET_SERIES") {
+              reiniciarConteoSeries();
+            }
+            if (event.data?.type === "SW_OPEN_TIMER") {
+              showScreen("cronometroScreen");
+            }
+          });
+          enviarEstadoCronometroASW(true);
+        } catch (_) {}
+      }
+
+      if (gymTimerRunning) {
+        if (gymTimerInterval) clearInterval(gymTimerInterval);
+        gymTimerInterval = setInterval(() => {
+          renderGymTimerUI();
+          enviarEstadoCronometroASW();
+          guardarTodo();
+        }, 1000);
+      }
+
+      renderGymTimerUI();
+      renderRestTimerUI();
+      calcularGraficaTiempoGym();
+    };
+  </script>
+</body>
+</html>
