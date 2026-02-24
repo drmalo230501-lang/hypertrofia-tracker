@@ -654,12 +654,14 @@
     }
 
     #quickGymYesFab {
-      bottom: 68px;
+      bottom: 14px;
+      left: 14px;
       background: var(--success);
     }
 
     #quickGymNoFab {
-      bottom: 122px;
+      bottom: 14px;
+      left: 68px;
       background: #475569;
     }
 
@@ -820,6 +822,7 @@
           <div id="homeAvatarText">Nivel físico semanal</div>
           <div id="homeAvatar" class="home-avatar">😮‍💨</div>
         </div>
+        <button class="btn secondary" onclick="resetEstadisticasSemanales()">Reset estadísticas semanales</button>
       </div>
     </section>
 
@@ -865,7 +868,6 @@
       <h2>Asistencia al gimnasio</h2>
       <div class="actions">
         <button class="btn secondary" onclick="resetSemanaGym()">Reset semanal</button>
-        <button class="btn secondary" onclick="resetEstadisticasSemanales()">Reset estadísticas semanales</button>
       </div>
       <label>Meta semanal de entreno (días)
         <input id="metaEntrenoSemanal" type="number" min="1" max="7" step="1" value="4" onchange="actualizarMetaEntrenoSemanal()">
