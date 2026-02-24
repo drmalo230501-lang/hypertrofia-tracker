@@ -865,6 +865,7 @@
       <h2>Asistencia al gimnasio</h2>
       <div class="actions">
         <button class="btn secondary" onclick="resetSemanaGym()">Reset semanal</button>
+        <button class="btn secondary" onclick="resetEstadisticasSemanales()">Reset estadísticas semanales</button>
       </div>
       <label>Meta semanal de entreno (días)
         <input id="metaEntrenoSemanal" type="number" min="1" max="7" step="1" value="4" onchange="actualizarMetaEntrenoSemanal()">
@@ -1448,6 +1449,53 @@
       guardarSemanaEnHistorial();
       guardarTodo();
       mostrarToast("Semana reiniciada ✅");
+    }
+
+
+    function resetEstadisticasSemanales() {
+      for (const dia in semana) semana[dia] = null;
+      diasGym = 0;
+      restSeriesCount = 0;
+      restTimerSeconds = 0;
+      restTimerRunning = false;
+      restTimerStartedAt = null;
+      if (restTimerInterval) {
+        clearInterval(restTimerInterval);
+        restTimerInterval = null;
+      }
+
+      gymTimerSeconds = 0;
+      gymTimerRunning = false;
+      gymTimerStartedAt = null;
+      if (gymTimerInterval) {
+        clearInterval(gymTimerInterval);
+        gymTimerInterval = null;
+      }
+
+      for (const dia of diasOrden) {
+        gymTimeWeek[dia] = 0;
+      }
+
+      for (const musculo in datosSeries) {
+        datosSeries[musculo] = 0;
+      }
+
+      const diasGymEl = document.getElementById("diasGym");
+      if (diasGymEl) diasGymEl.innerText = "0";
+      const gymEmoji = document.getElementById("gymEmoji");
+      if (gymEmoji) gymEmoji.innerText = "";
+
+      actualizarAnimacionGym(null);
+      renderSemana();
+      renderSeries();
+      renderGymTimerUI();
+      renderRestTimerUI();
+      calcularGraficaTiempoGym();
+      actualizarAsistenciaHome();
+      guardarSemanaEnHistorial();
+      guardarTodo();
+      enviarEstadoCronometroASW(true);
+      mostrarToast("Estadísticas semanales reiniciadas ✅");
     }
 
     function renderSemana() {
