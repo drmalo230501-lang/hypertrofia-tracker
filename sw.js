@@ -1,9 +1,9 @@
 const CACHE_NAME = 'hypertrofia-cache-v1';
 const APP_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icon.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './icon.png'
 ];
 
 let latestTimerState = {
@@ -46,7 +46,7 @@ self.addEventListener('fetch', (event) => {
       }
       return networkResponse;
     } catch (_) {
-      const fallback = await caches.match('/index.html');
+      const fallback = await caches.match('./index.html');
       return fallback || new Response('Offline', { status: 503, statusText: 'Offline' });
     }
   })());
@@ -81,8 +81,8 @@ async function publishTimerNotification() {
     tag: 'hypertrofia-timer',
     renotify: true,
     requireInteraction: true,
-    icon: '/icon.png',
-    badge: '/icon.png',
+    icon: './icon.png',
+    badge: './icon.png',
     actions: [
       { action: 'add-series', title: '+1 Serie' },
       { action: 'reset-series', title: 'Reset Series' },
@@ -131,6 +131,6 @@ self.addEventListener('notificationclick', (event) => {
       allClients[0].postMessage({ type: 'SW_OPEN_TIMER' });
       return;
     }
-    await self.clients.openWindow('/index.html#cronometro');
+    await self.clients.openWindow('./index.html#cronometro');
   })());
 });
