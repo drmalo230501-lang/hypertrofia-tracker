@@ -2,9 +2,9 @@
   "id": "./",
   "name": "Hypertrofia Tracker",
   "short_name": "Hypertrofia",
-  "description": "Seguimiento de hipertrofia, asistencia, agua y cronómetro con soporte PWA.",
-  "lang": "es",
-  "start_url": "./index.html",
+  "description": "Registro de entrenamientos, series, peso, repeticiones, RIR, volumen muscular y progresión.",
+  "lang": "es-MX",
+  "start_url": "./index.html#dashboard",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
@@ -21,9 +21,15 @@
   ],
   "shortcuts": [
     {
-      "name": "Cronómetro",
-      "short_name": "Timer",
-      "url": "./index.html#cronometro",
+      "name": "Iniciar entrenamiento",
+      "short_name": "Entreno",
+      "url": "./index.html#workout",
+      "icons": [{ "src": "icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Volumen semanal",
+      "short_name": "Volumen",
+      "url": "./index.html#volume",
       "icons": [{ "src": "icon.png", "sizes": "192x192" }]
     }
   ]
