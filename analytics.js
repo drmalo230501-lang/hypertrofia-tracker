@@ -165,6 +165,10 @@ sets: sets.length
 });
 });
 performances.sort((a, b) => a.date.localeCompare(b.date));
+if (!performances.length) {
+$('exerciseProgress').innerHTML = '<div class="empty-state"><p>Este ejercicio todavía no tiene series de trabajo completas.</p></div>';
+return;
+}
 const latest = performances.at(-1);
 const best = [...performances].sort((a, b) => b.e1rm - a.e1rm)[0];
 const previous = performances.at(-2);
