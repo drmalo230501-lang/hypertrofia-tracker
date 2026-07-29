@@ -1,0 +1,25 @@
+'use strict';
+const EXERCISES_UPPER = [
+  { name:'Press de banca', icon:'🏋️', region:'upper', primary:'Pecho', secondary:[['Tríceps',.5],['Deltoide anterior',.5]], equipment:'Barra', rep:[6,10], rest:180, increment:2.5 },
+  { name:'Press inclinado con mancuernas', icon:'↗️', region:'upper', primary:'Pecho', secondary:[['Tríceps',.5],['Deltoide anterior',.5]], equipment:'Mancuernas', rep:[8,12], rest:150, increment:2 },
+  { name:'Press en máquina', icon:'🪑', region:'upper', primary:'Pecho', secondary:[['Tríceps',.5],['Deltoide anterior',.33]], equipment:'Máquina', rep:[8,15], rest:120, increment:5 },
+  { name:'Aperturas en polea', icon:'🪽', region:'upper', primary:'Pecho', secondary:[], equipment:'Polea', rep:[10,20], rest:90, increment:2.5 },
+  { name:'Fondos', icon:'⬇️', region:'upper', primary:'Pecho', secondary:[['Tríceps',.5],['Deltoide anterior',.33]], equipment:'Peso corporal', rep:[6,15], rest:150, increment:2.5 },
+  { name:'Dominadas', icon:'⬆️', region:'upper', primary:'Espalda', secondary:[['Bíceps',.5],['Antebrazo',.33]], equipment:'Peso corporal', rep:[5,12], rest:180, increment:2.5 },
+  { name:'Jalón al pecho', icon:'🪢', region:'upper', primary:'Espalda', secondary:[['Bíceps',.5],['Antebrazo',.25]], equipment:'Polea', rep:[8,15], rest:120, increment:5 },
+  { name:'Remo con barra', icon:'🚣', region:'upper', primary:'Espalda', secondary:[['Bíceps',.5],['Deltoide posterior',.5],['Erectores espinales',.33]], equipment:'Barra', rep:[6,12], rest:180, increment:2.5 },
+  { name:'Remo en máquina', icon:'🚣', region:'upper', primary:'Espalda', secondary:[['Bíceps',.5],['Deltoide posterior',.5]], equipment:'Máquina', rep:[8,15], rest:120, increment:5 },
+  { name:'Pullover en polea', icon:'🌙', region:'upper', primary:'Espalda', secondary:[['Tríceps',.25]], equipment:'Polea', rep:[10,20], rest:90, increment:2.5 },
+  { name:'Press militar', icon:'⬆️', region:'upper', primary:'Deltoide anterior', secondary:[['Tríceps',.5],['Deltoide lateral',.33]], equipment:'Barra', rep:[6,12], rest:150, increment:2.5 },
+  { name:'Elevaciones laterales', icon:'🪽', region:'upper', primary:'Deltoide lateral', secondary:[], equipment:'Mancuernas', rep:[10,25], rest:75, increment:1 },
+  { name:'Elevación lateral en polea', icon:'📐', region:'upper', primary:'Deltoide lateral', secondary:[], equipment:'Polea', rep:[10,25], rest:75, increment:1.25 },
+  { name:'Reverse fly', icon:'🔙', region:'upper', primary:'Deltoide posterior', secondary:[['Espalda',.25]], equipment:'Máquina', rep:[10,20], rest:90, increment:2.5 },
+  { name:'Face pull', icon:'🎯', region:'upper', primary:'Deltoide posterior', secondary:[['Espalda',.25]], equipment:'Polea', rep:[12,20], rest:75, increment:2.5 },
+  { name:'Curl con barra', icon:'💪', region:'upper', primary:'Bíceps', secondary:[['Antebrazo',.33]], equipment:'Barra', rep:[6,12], rest:90, increment:1.25 },
+  { name:'Curl inclinado', icon:'🪑', region:'upper', primary:'Bíceps', secondary:[['Antebrazo',.25]], equipment:'Mancuernas', rep:[8,15], rest:90, increment:1 },
+  { name:'Curl martillo', icon:'🔨', region:'upper', primary:'Bíceps', secondary:[['Antebrazo',.5]], equipment:'Mancuernas', rep:[8,15], rest:90, increment:1 },
+  { name:'Extensión de tríceps en polea', icon:'⬇️', region:'upper', primary:'Tríceps', secondary:[], equipment:'Polea', rep:[8,15], rest:90, increment:2.5 },
+  { name:'Extensión sobre cabeza', icon:'🙆', region:'upper', primary:'Tríceps', secondary:[], equipment:'Polea', rep:[10,20], rest:90, increment:2.5 },
+  { name:'Press cerrado', icon:'🤏', region:'upper', primary:'Tríceps', secondary:[['Pecho',.5],['Deltoide anterior',.33]], equipment:'Barra', rep:[6,12], rest:150, increment:2.5 },
+  { name:'Curl de muñeca', icon:'✊', region:'upper', primary:'Antebrazo', secondary:[], equipment:'Mancuernas', rep:[12,25], rest:60, increment:1 }
+];

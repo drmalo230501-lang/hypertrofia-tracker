@@ -1,296 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>Hypertrofia Tracker</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Registro de entrenamiento, progresión, volumen y recuperación para hipertrofia.">
+  <title>Hypertrofia Tracker v3</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="stylesheet" href="v3.css">
 </head>
 <body>
-<div id="app" class="app-shell">
-<header class="topbar">
-<div>
-<p class="eyebrow">ENTRENAMIENTO BASADO EN EVIDENCIA</p>
-<h1>Hypertrofia Tracker</h1>
-</div>
-<button id="installBtn" class="icon-button hidden" type="button" aria-label="Instalar aplicación" title="Instalar aplicación">⬇️</button>
-</header>
-<main id="mainContent" class="main-content">
-<section id="dashboardView" class="view active" data-route="dashboard">
-<div id="dashboardGreeting" class="hero-card"></div>
-<div class="metric-grid">
-<article class="metric-card">
-<span class="metric-label">Entrenamientos</span>
-<strong id="metricSessions">0</strong>
-<small>esta semana</small>
-</article>
-<article class="metric-card">
-<span class="metric-label">Series efectivas</span>
-<strong id="metricHardSets">0</strong>
-<small>RIR 0–3</small>
-</article>
-<article class="metric-card">
-<span class="metric-label">Volumen movido</span>
-<strong id="metricTonnage">0 kg</strong>
-<small>carga × repeticiones</small>
-</article>
-<article class="metric-card">
-<span class="metric-label">Duración</span>
-<strong id="metricDuration">0 min</strong>
-<small>tiempo total</small>
-</article>
-</div>
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">SEMANA ACTUAL</p>
-<h2>Consistencia</h2>
-</div>
-<span id="weekRange" class="badge"></span>
-</div>
-<div id="weekStrip" class="week-strip"></div>
-</article>
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">VOLUMEN FRACCIONAL</p>
-<h2>Grupos prioritarios</h2>
-</div>
-<button class="text-button" type="button" data-go="volume">Ver todos</button>
-</div>
-<div id="dashboardMuscles" class="muscle-summary"></div>
-</article>
-<article class="panel compact-panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">HIDRATACIÓN</p>
-<h2>Agua de hoy</h2>
-</div>
-<strong id="waterTodayLabel">0.00 / 0.00 L</strong>
-</div>
-<div class="progress-track"><div id="waterProgress" class="progress-fill"></div></div>
-<div class="button-row">
-<button class="secondary-button" type="button" data-water="0.25">+250 ml</button>
-<button class="secondary-button" type="button" data-water="0.5">+500 ml</button>
-<button class="secondary-button" type="button" data-water="1">+1 L</button>
-</div>
-</article>
-</section>
-<section id="workoutView" class="view" data-route="workout">
-<div id="noActiveWorkout" class="empty-state">
-<div class="empty-icon">🏋️</div>
-<h2>Registra tu entrenamiento completo</h2>
-<p>Guarda ejercicios, peso, repeticiones, RIR, calentamientos y descansos. El volumen muscular se calcula automáticamente.</p>
-<label>Nombre de la sesión
-<input id="newSessionName" type="text" placeholder="Ej. Upper A, Pierna, Push">
-</label>
-<button id="startWorkoutBtn" class="primary-button" type="button">Iniciar entrenamiento</button>
-<button id="copyLastWorkoutBtn" class="secondary-button" type="button">Copiar último entrenamiento</button>
-</div>
-<div id="activeWorkout" class="hidden">
-<article class="session-header panel">
-<div>
-<p class="eyebrow">SESIÓN ACTIVA</p>
-<input id="activeSessionName" class="title-input" type="text" aria-label="Nombre de la sesión">
-<p id="sessionClock" class="session-clock">00:00:00</p>
-</div>
-<div class="button-row vertical-mobile">
-<button id="finishWorkoutBtn" class="primary-button" type="button">Finalizar</button>
-<button id="cancelWorkoutBtn" class="danger-button" type="button">Cancelar</button>
-</div>
-</article>
-<article class="panel rest-panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">DESCANSO EN PANTALLA</p>
-<h2 id="restTimerLabel">03:00</h2>
-</div>
-<span id="restTimerStatus" class="badge neutral">Listo</span>
-</div>
-<div class="button-row">
-<button id="restStartBtn" class="secondary-button" type="button">Iniciar</button>
-<button id="restResetBtn" class="secondary-button" type="button">Reiniciar</button>
-<label class="inline-field">Meta
-<input id="restTargetInput" type="number" min="30" max="600" step="15" value="180">
-<span>s</span>
-</label>
-</div>
-<small>Sin notificaciones del sistema. La alerta sonora o vibración solo ocurre mientras la app está abierta.</small>
-</article>
-<div id="exerciseList" class="exercise-list"></div>
-<article class="panel add-exercise-panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">NUEVO EJERCICIO</p>
-<h2>Agregar a la sesión</h2>
-</div>
-</div>
-<div class="form-grid two-columns">
-<label>Ejercicio
-<input id="exerciseNameInput" type="text" list="exerciseSuggestions" placeholder="Ej. Press de banca">
-<datalist id="exerciseSuggestions"></datalist>
-</label>
-<label>Músculo principal
-<select id="primaryMuscleSelect"></select>
-</label>
-<label>Músculos secundarios
-<select id="secondaryMusclesSelect" multiple size="5"></select>
-<small>Ctrl/Cmd o pulsación múltiple según el dispositivo.</small>
-</label>
-<label>Crédito secundario
-<select id="secondaryFactorSelect">
-<option value="0.5">0.5 serie por músculo</option>
-<option value="0.33">0.33 serie por músculo</option>
-<option value="0.25">0.25 serie por músculo</option>
-</select>
-</label>
-</div>
-<button id="addExerciseBtn" class="primary-button" type="button">Agregar ejercicio</button>
-</article>
-<label class="panel">Notas de la sesión
-<textarea id="sessionNotes" rows="3" placeholder="Energía, dolor, técnica, sueño, observaciones..."></textarea>
-</label>
-</div>
-</section>
-<section id="volumeView" class="view" data-route="volume">
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">DOSIS SEMANAL</p>
-<h2>Volumen por grupo muscular</h2>
-</div>
-<select id="volumeWeekSelect" aria-label="Semana a consultar"></select>
-</div>
-<p class="info-box">Las series de trabajo cuentan 1.0 para el músculo principal y el crédito configurado para músculos secundarios. “Cerca del fallo” corresponde a RIR 0–3. Los rangos son metas personales editables, no límites biológicos rígidos.</p>
-<div id="volumeMuscleList" class="volume-muscle-list"></div>
-</article>
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">TENDENCIA</p>
-<h2>Últimas 6 semanas</h2>
-</div>
-<select id="trendMuscleSelect" aria-label="Músculo para tendencia"></select>
-</div>
-<div id="trendChart" class="bar-chart"></div>
-</article>
-</section>
-<section id="historyView" class="view" data-route="history">
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">PROGRESIÓN</p>
-<h2>Historial de sesiones</h2>
-</div>
-<input id="historySearch" class="search-input" type="search" placeholder="Buscar ejercicio o sesión">
-</div>
-<div id="historyList" class="history-list"></div>
-</article>
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">MEJORES MARCAS</p>
-<h2>Progresión por ejercicio</h2>
-</div>
-<select id="progressExerciseSelect" aria-label="Ejercicio a analizar"></select>
-</div>
-<div id="exerciseProgress" class="progress-analysis"></div>
-</article>
-</section>
-<section id="profileView" class="view" data-route="profile">
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">PERFIL</p>
-<h2>Datos personales</h2>
-</div>
-</div>
-<div class="form-grid two-columns">
-<label>Nombre <input id="profileName" type="text"></label>
-<label>Sexo <input id="profileSex" type="text"></label>
-<label>Edad <input id="profileAge" type="number" min="1" max="120"></label>
-<label>Altura (cm) <input id="profileHeight" type="number" min="1" step="0.1"></label>
-<label>Peso actual (kg) <input id="profileWeight" type="number" min="1" step="0.1"></label>
-<label>Meta de agua (L) <input id="profileWaterGoal" type="number" min="0.5" max="10" step="0.05"></label>
-</div>
-<button id="saveProfileBtn" class="primary-button" type="button">Guardar perfil</button>
-</article>
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">MEDIDAS</p>
-<h2>Registrar progreso corporal</h2>
-</div>
-</div>
-<div class="form-grid three-columns">
-<label>Peso (kg) <input id="measureWeight" type="number" step="0.1"></label>
-<label>Pecho (cm) <input id="measureChest" type="number" step="0.1"></label>
-<label>Brazo (cm) <input id="measureArm" type="number" step="0.1"></label>
-<label>Cintura (cm) <input id="measureWaist" type="number" step="0.1"></label>
-<label>Muslo (cm) <input id="measureThigh" type="number" step="0.1"></label>
-<label>Fecha <input id="measureDate" type="date"></label>
-</div>
-<button id="addMeasurementBtn" class="primary-button" type="button">Guardar medición</button>
-<div id="measurementHistory" class="measurement-history"></div>
-</article>
-<article class="panel">
-<div class="panel-heading">
-<div>
-<p class="eyebrow">RESPALDO</p>
-<h2>Datos y seguridad</h2>
-</div>
-</div>
-<div class="button-row">
-<button id="exportBtn" class="secondary-button" type="button">Exportar JSON</button>
-<label class="secondary-button file-button">Importar JSON
-<input id="importInput" type="file" accept="application/json">
-</label>
-<button id="resetDataBtn" class="danger-button" type="button">Borrar todos los datos</button>
-</div>
-<small>La información se guarda localmente en este dispositivo. Exporta un respaldo con frecuencia.</small>
-</article>
-</section>
-</main>
-<nav class="bottom-nav" aria-label="Navegación principal">
-<button type="button" data-route-button="dashboard"><span>⌂</span><small>Inicio</small></button>
-<button type="button" data-route-button="workout"><span>＋</span><small>Entreno</small></button>
-<button type="button" data-route-button="volume"><span>◫</span><small>Volumen</small></button>
-<button type="button" data-route-button="history"><span>↗</span><small>Historial</small></button>
-<button type="button" data-route-button="profile"><span>⚙</span><small>Perfil</small></button>
-</nav>
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-</div>
-<template id="exerciseCardTemplate">
-<article class="exercise-card">
-<div class="exercise-card-header">
-<div>
-<input class="exercise-title-input" type="text" aria-label="Nombre del ejercicio">
-<p class="exercise-muscle-label"></p>
-</div>
-<button class="icon-button danger-ghost remove-exercise" type="button" aria-label="Eliminar ejercicio">✕</button>
-</div>
-<div class="sets-table-wrap">
-<table class="sets-table">
-<thead>
-<tr><th>#</th><th>kg</th><th>reps</th><th>RIR</th><th>Calent.</th><th></th></tr>
-</thead>
-<tbody></tbody>
-</table>
-</div>
-<div class="button-row">
-<button class="secondary-button add-set" type="button">+ Serie</button>
-<button class="secondary-button copy-last-set" type="button">Duplicar última</button>
-</div>
-</article>
-</template>
-<script src="core.js" defer></script>
-<script src="workout.js" defer></script>
-<script src="analytics.js" defer></script>
-<script src="init.js" defer></script>
+  <div id="app" class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">COACH DE HIPERTROFIA</p>
+        <h1>Hypertrofia Tracker <span class="version-pill">v3</span></h1>
+      </div>
+      <div class="topbar-actions">
+        <span id="syncIndicator" class="sync-indicator" title="Estado de sincronización">Local</span>
+        <button id="installBtn" class="icon-button hidden" type="button" aria-label="Instalar aplicación">⬇️</button>
+      </div>
+    </header>
+
+    <main id="mainContent" class="main-content" aria-live="polite"></main>
+
+    <nav class="bottom-nav" aria-label="Navegación principal">
+      <button type="button" data-route="dashboard"><span>⌂</span><small>Inicio</small></button>
+      <button type="button" data-route="workout"><span>＋</span><small>Entreno</small></button>
+      <button type="button" data-route="routines"><span>▦</span><small>Rutinas</small></button>
+      <button type="button" data-route="analytics"><span>↗</span><small>Análisis</small></button>
+      <button type="button" data-route="profile"><span>⚙</span><small>Perfil</small></button>
+    </nav>
+
+    <div id="restDock" class="rest-dock hidden" role="timer">
+      <div>
+        <small>DESCANSO</small>
+        <strong id="restDockTime">03:00</strong>
+      </div>
+      <div class="rest-dock-actions">
+        <button id="restDockPause" class="small-button" type="button">Pausar</button>
+        <button id="restDockSkip" class="small-button ghost" type="button">Saltar</button>
+      </div>
+    </div>
+
+    <div id="modalRoot"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script src="v3-exercises-upper.js" defer></script>
+  <script src="v3-exercises-lower.js" defer></script>
+  <script src="v3-exercises-core.js" defer></script>
+  <script src="v3-base.js" defer></script>
+  <script src="v3-state.js" defer></script>
+  <script src="v3-dashboard.js" defer></script>
+  <script src="v3-workout-builder.js" defer></script>
+  <script src="v3-workout-active.js" defer></script>
+  <script src="v3-routines.js" defer></script>
+  <script src="v3-analytics.js" defer></script>
+  <script src="v3-profile.js" defer></script>
+  <script src="v3-recovery.js" defer></script>
+  <script src="v3-cloud-timers.js" defer></script>
+  <script src="v3-events.js" defer></script>
 </body>
 </html>

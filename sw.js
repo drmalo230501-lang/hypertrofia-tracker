@@ -1,12 +1,22 @@
-const CACHE_NAME = 'hypertrofia-cache-v2';
+const CACHE_NAME = 'hypertrofia-cache-v3-20260729';
 const APP_ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './core.js',
-  './workout.js',
-  './analytics.js',
-  './init.js',
+  './v3.css',
+  './v3-exercises-upper.js',
+  './v3-exercises-lower.js',
+  './v3-exercises-core.js',
+  './v3-base.js',
+  './v3-state.js',
+  './v3-dashboard.js',
+  './v3-workout-builder.js',
+  './v3-workout-active.js',
+  './v3-routines.js',
+  './v3-analytics.js',
+  './v3-profile.js',
+  './v3-recovery.js',
+  './v3-cloud-timers.js',
+  './v3-events.js',
   './manifest.json',
   './icon.png'
 ];
@@ -29,25 +39,38 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(event.request, { cache: 'no-store' });
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put('./index.html', fresh.clone());
+        return fresh;
+      } catch {
+        return (await caches.match('./index.html')) || new Response('Offline', { status: 503 });
+      }
+    })());
+    return;
+  }
+
   event.respondWith((async () => {
     const cached = await caches.match(event.request);
-    const networkPromise = fetch(event.request)
+    const network = fetch(event.request)
       .then(async (response) => {
-        if (response.ok && event.request.url.startsWith(self.location.origin)) {
+        if (response.ok) {
           const cache = await caches.open(CACHE_NAME);
           await cache.put(event.request, response.clone());
         }
         return response;
       })
       .catch(() => null);
-
     if (cached) {
-      event.waitUntil(networkPromise);
+      event.waitUntil(network);
       return cached;
     }
-
-    const network = await networkPromise;
-    if (network) return network;
-    return (await caches.match('./index.html')) || new Response('Offline', { status: 503 });
+    return (await network) || new Response('Offline', { status: 503 });
   })());
 });
