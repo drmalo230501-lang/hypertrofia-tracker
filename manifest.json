@@ -1,16 +1,16 @@
 {
   "id": "./",
-  "name": "Hypertrofia Tracker",
+  "name": "Hypertrofia Tracker v3",
   "short_name": "Hypertrofia",
-  "description": "Registro de entrenamientos, series, peso, repeticiones, RIR, volumen muscular y progresión.",
+  "description": "Rutinas, series, RIR, progresión, volumen muscular, recuperación y mesociclos.",
   "lang": "es-MX",
-  "start_url": "./index.html#dashboard",
+  "start_url": "./index.html#/dashboard",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
-  "background_color": "#0b1220",
-  "theme_color": "#0f172a",
+  "background_color": "#070b14",
+  "theme_color": "#111827",
   "icons": [
     {
       "src": "icon.png",
@@ -23,13 +23,19 @@
     {
       "name": "Iniciar entrenamiento",
       "short_name": "Entreno",
-      "url": "./index.html#workout",
+      "url": "./index.html#/workout",
       "icons": [{ "src": "icon.png", "sizes": "192x192" }]
     },
     {
-      "name": "Volumen semanal",
-      "short_name": "Volumen",
-      "url": "./index.html#volume",
+      "name": "Mis rutinas",
+      "short_name": "Rutinas",
+      "url": "./index.html#/routines",
+      "icons": [{ "src": "icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Análisis",
+      "short_name": "Análisis",
+      "url": "./index.html#/analytics",
       "icons": [{ "src": "icon.png", "sizes": "192x192" }]
     }
   ]
