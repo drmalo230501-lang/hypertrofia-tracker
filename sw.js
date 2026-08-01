@@ -1,9 +1,10 @@
-const CACHE_NAME = 'hypertrofia-cache-v31-20260731b';
+const CACHE_NAME = 'hypertrofia-cache-v311-20260731';
 const APP_ASSETS = [
   './',
   './index.html',
   './v3.css',
   './v31.css',
+  './v32.css',
   './v3-exercises-upper.js',
   './v3-exercises-lower.js',
   './v3-exercises-core.js',
@@ -20,6 +21,7 @@ const APP_ASSETS = [
   './v3-events.js',
   './v31-dynamic.js',
   './v31-fixes.js',
+  './v32-custom-exercise.js',
   './manifest.json',
   './icon.png'
 ];
