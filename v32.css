@@ -1,0 +1,81 @@
+/* Hypertrofia Tracker v3.1.1 — creador de ejercicios con emoji */
+.v32-create-exercise {
+  border: 2px dashed #93c5fd;
+  background: linear-gradient(135deg, #eff6ff, #f8fafc);
+}
+.v32-create-exercise .v31-exercise-icon {
+  color: var(--primary);
+  background: #dbeafe;
+}
+.v32-custom-form {
+  margin: 8px 0 14px;
+  display: grid;
+  gap: 12px;
+}
+.v32-emoji-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 58px;
+  gap: 8px;
+  align-items: center;
+}
+.v32-emoji-input input {
+  font-size: 1.4rem;
+  text-align: center;
+}
+#v32EmojiPreview {
+  width: 58px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--primary-soft);
+  font-size: 1.75rem;
+}
+.v32-field-label {
+  margin: 0 0 7px;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 700;
+}
+.v32-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+.v32-emoji-grid button {
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-2);
+  font-size: 1.35rem;
+  cursor: pointer;
+}
+.v32-emoji-grid button:active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  transform: scale(.96);
+}
+.v32-secondary-details {
+  margin: 4px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface-2);
+}
+.v32-secondary-details > summary {
+  padding: 11px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: .8rem;
+  font-weight: 800;
+}
+.v32-secondary-details > p,
+.v32-secondary-details > .v31-secondary-grid {
+  margin: 0 10px 10px;
+}
+@media (max-width: 380px) {
+  .v32-emoji-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
