@@ -1,0 +1,104 @@
+/* Hypertrofia Tracker v3.1 — flujo dinámico y colapsable */
+.v31-hero { padding: 18px; }
+.v31-hero h2 { max-width: 520px; font-size: clamp(1.35rem, 5vw, 1.8rem); }
+.v31-mode-card { display: grid; gap: 10px; }
+.v31-segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 4px; border-radius: 14px; background: var(--surface-3); }
+.v31-segmented button { min-height: 44px; border: 0; border-radius: 11px; background: transparent; color: var(--muted); font-weight: 900; }
+.v31-segmented button.active { background: var(--surface); color: var(--primary); box-shadow: 0 3px 12px rgba(15,23,42,.09); }
+.v31-past-fields { margin-top: 3px; }
+.v31-past-fields label span, .v31-backdated-fields label span { font-size: .68rem; color: var(--muted); }
+.v31-start-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.v31-focus-card { min-height: 128px; padding: 14px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; text-align: left; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-2); color: var(--text); cursor: pointer; }
+.v31-focus-card > span { font-size: 2rem; }
+.v31-focus-card strong { font-size: 1rem; }
+.v31-focus-card small { line-height: 1.25; }
+.v31-focus-card.selected { border-color: var(--primary); color: #fff; background: linear-gradient(145deg, var(--primary), #1e3a8a); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.v31-focus-card.selected small { color: #dbeafe; }
+.v31-muscle-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 7px; }
+.v31-muscle-chip { min-height: 54px; padding: 9px 10px; display: flex; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--border); border-radius: 13px; background: var(--surface-2); color: var(--text); cursor: pointer; }
+.v31-muscle-chip > span { font-size: 1.22rem; }
+.v31-muscle-chip strong { font-size: .78rem; }
+.v31-muscle-chip.selected { border-color: var(--primary); color: #fff; background: var(--primary); }
+.v31-muscle-sections, .v31-selected-list, .v31-routines-page { display: grid; gap: 10px; }
+.v31-muscle-section { padding: 0; overflow: hidden; }
+.v31-muscle-section > summary, .v31-library-section > summary, .v31-routine-accordion > summary { list-style: none; min-height: 62px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; }
+.v31-muscle-section > summary::-webkit-details-marker, .v31-library-section > summary::-webkit-details-marker, .v31-routine-accordion > summary::-webkit-details-marker, .v31-plan-settings > summary::-webkit-details-marker, .v31-set-log > summary::-webkit-details-marker, .v31-previous > summary::-webkit-details-marker, .v31-notes > summary::-webkit-details-marker { display: none; }
+.v31-muscle-section > summary span:first-child, .v31-library-section > summary span:first-child, .v31-routine-accordion > summary span:first-child { display: grid; gap: 3px; }
+.v31-muscle-section > summary small, .v31-library-section > summary small, .v31-routine-accordion > summary small { color: var(--muted); font-size: .7rem; }
+.v31-chevron { transition: transform .18s ease; }
+.v31-muscle-section[open] .v31-chevron { transform: rotate(180deg); }
+.v31-exercise-grid { padding: 0 10px 12px; display: grid; gap: 7px; }
+.v31-exercise-tile { width: 100%; min-height: 70px; padding: 9px; display: grid; grid-template-columns: 44px minmax(0,1fr) 28px; gap: 9px; align-items: center; text-align: left; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-2); color: var(--text); cursor: pointer; }
+.v31-exercise-tile.selected { border-color: var(--primary); background: #eff6ff; box-shadow: inset 0 0 0 1px rgba(37,99,235,.1); }
+.v31-exercise-tile.custom { border-style: dashed; }
+.v31-exercise-icon { width: 44px; height: 44px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 12px; background: var(--primary-soft); font-size: 1.28rem; }
+.v31-exercise-copy { min-width: 0; display: grid; gap: 2px; }
+.v31-exercise-copy strong { font-size: .82rem; }
+.v31-exercise-copy small { font-size: .68rem; }
+.v31-exercise-copy em { font-size: .64rem; line-height: 1.25; color: #1d4ed8; font-style: normal; }
+.v31-check { width: 26px; height: 26px; display: grid; place-items: center; border: 2px solid var(--border); border-radius: 999px; font-weight: 900; }
+.v31-exercise-tile.selected .v31-check { border-color: var(--primary); color: #fff; background: var(--primary); }
+.v31-selected-panel { padding-bottom: 12px; }
+.v31-plan-settings { overflow: hidden; border: 1px solid var(--border); border-radius: 13px; background: var(--surface-2); }
+.v31-plan-settings > summary { min-height: 52px; padding: 10px 11px; display: flex; align-items: center; justify-content: space-between; gap: 9px; cursor: pointer; font-size: .78rem; }
+.v31-plan-settings > .form-grid, .v31-plan-settings > .v31-evidence-line, .v31-plan-settings > button { margin: 0 10px 10px; }
+.v31-evidence-line { margin: 0; padding: 7px 9px; border-radius: 10px; color: #1e3a8a; background: #dbeafe; font-size: .68rem; line-height: 1.35; }
+.v31-sticky-action { position: sticky; bottom: calc(76px + var(--safe-bottom)); z-index: 25; min-height: 66px; padding: 9px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid rgba(37,99,235,.24); border-radius: 16px; background: rgba(255,255,255,.95); box-shadow: 0 14px 34px rgba(15,23,42,.18); backdrop-filter: blur(12px); }
+.v31-sticky-action > div { display: grid; }
+.v31-sticky-action small { font-size: .68rem; }
+.v31-sticky-action .primary-button { min-width: 124px; }
+.v31-library-section { padding: 0; overflow: hidden; }
+.v31-routine-list { padding: 0 10px 12px; display: grid; gap: 7px; }
+.v31-routine-row { padding: 9px; display: flex; align-items: center; justify-content: space-between; gap: 9px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.v31-routine-row > div { display: grid; gap: 2px; }
+.v31-routine-row small { font-size: .68rem; }
+.v31-routine-accordion { padding: 0; overflow: hidden; }
+.v31-routine-accordion > .v31-routine-exercises, .v31-routine-accordion > .button-row { margin: 0 12px 12px; }
+.v31-routine-exercises { display: grid; gap: 6px; }
+.v31-routine-exercises > div { padding: 7px 8px; display: grid; grid-template-columns: 28px 1fr; gap: 7px; align-items: center; border-radius: 10px; background: var(--surface-2); }
+.v31-routine-exercises p { margin: 0; display: grid; }
+.v31-routine-exercises small { font-size: .66rem; }
+.v31-workout-toolbar { display: grid; gap: 9px; }
+.v31-session-heading { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.v31-session-heading input { padding: 0; min-height: 34px; border: 0; background: transparent; font-size: 1.1rem; font-weight: 900; }
+.v31-session-actions { display: grid; justify-items: end; gap: 5px; }
+.v31-session-stats, .v31-plan-strip { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.v31-session-stats span, .v31-plan-strip span { flex: 0 0 auto; padding: 5px 8px; border-radius: 999px; color: var(--muted); background: var(--surface-3); font-size: .67rem; font-weight: 900; }
+.v31-active-exercise { border-radius: 17px; }
+.v31-active-header { padding: 8px; display: grid; grid-template-columns: 1fr auto; gap: 5px; align-items: center; border-bottom: 0; }
+.v31-exercise-toggle { min-width: 0; min-height: 58px; padding: 4px; display: grid; grid-template-columns: 44px minmax(0,1fr) 24px; gap: 9px; align-items: center; text-align: left; border: 0; background: transparent; color: var(--text); }
+.v31-exercise-toggle > span:nth-child(2) { min-width: 0; display: grid; gap: 2px; }
+.v31-exercise-toggle strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v31-exercise-toggle small { font-size: .68rem; }
+.v31-header-actions { display: flex; }
+.v31-header-actions .icon-button { width: 36px; min-height: 36px; }
+.v31-active-exercise.open .v31-active-header { border-bottom: 1px solid var(--border); }
+.v31-active-exercise .exercise-card-body { padding-top: 10px; }
+.v31-previous, .v31-set-log, .v31-notes { border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
+.v31-previous > summary, .v31-set-log > summary, .v31-notes > summary { padding: 9px 10px; cursor: pointer; color: var(--muted); font-size: .73rem; font-weight: 800; }
+.v31-previous > div, .v31-set-log > div, .v31-notes > textarea { margin: 0 9px 9px; }
+.v31-set-entry { display: grid; grid-template-columns: 1.1fr .9fr; gap: 8px; }
+.v31-set-entry label { position: relative; padding: 8px 9px; border: 1px solid var(--border); border-radius: 13px; background: var(--surface-2); }
+.v31-set-entry label > span { font-size: .68rem; }
+.v31-set-entry input { min-height: 42px; padding: 2px 0; border: 0; background: transparent; font-size: 1.35rem; font-weight: 900; box-shadow: none; }
+.v31-set-entry label > small { position: absolute; right: 9px; bottom: 12px; }
+.v31-rir-block { display: grid; gap: 5px; }
+.v31-complete-set { min-height: 52px; font-size: 1rem; }
+.v31-backdated-fields { padding: 8px; border-radius: 12px; background: #fef3c7; }
+.v31-secondary-grid { margin: 10px 0; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; }
+.v31-secondary-chip { display: block; }
+.v31-secondary-chip input { position: absolute; opacity: 0; pointer-events: none; }
+.v31-secondary-chip span { min-height: 42px; padding: 8px; display: flex; align-items: center; border: 1px solid var(--border); border-radius: 11px; background: var(--surface-2); color: var(--text); }
+.v31-secondary-chip input:checked + span { border-color: var(--primary); color: #fff; background: var(--primary); }
+.modal-action { bottom: 0; }
+@media (min-width: 600px) {
+  .v31-start-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .v31-muscle-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+  .v31-exercise-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 420px) {
+  .v31-session-heading { display: grid; }
+  .v31-session-actions { grid-template-columns: 1fr auto; align-items: center; justify-items: stretch; }
+  .v31-session-actions strong { align-self: center; }
+  .v31-plan-settings .form-grid.three { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
