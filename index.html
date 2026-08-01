@@ -6,18 +6,19 @@
   <meta name="theme-color" content="#111827">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="description" content="Registro de entrenamiento, progresión, volumen y recuperación para hipertrofia.">
-  <title>Hypertrofia Tracker v3</title>
+  <meta name="description" content="Registro dinámico de rutinas, series, volumen y progresión para hipertrofia.">
+  <title>Hypertrofia Tracker v3.1</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon.png">
   <link rel="stylesheet" href="v3.css">
+  <link rel="stylesheet" href="v31.css">
 </head>
 <body>
   <div id="app" class="app-shell">
     <header class="topbar">
       <div>
         <p class="eyebrow">COACH DE HIPERTROFIA</p>
-        <h1>Hypertrofia Tracker <span class="version-pill">v3</span></h1>
+        <h1>Hypertrofia Tracker <span class="version-pill">v3.1</span></h1>
       </div>
       <div class="topbar-actions">
         <span id="syncIndicator" class="sync-indicator" title="Estado de sincronización">Local</span>
@@ -64,5 +65,6 @@
   <script src="v3-recovery.js" defer></script>
   <script src="v3-cloud-timers.js" defer></script>
   <script src="v3-events.js" defer></script>
+  <script src="v31-dynamic.js" defer></script>
 </body>
 </html>
